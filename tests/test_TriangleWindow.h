@@ -5,7 +5,7 @@
 #include <string>
 #include <QtGui/QGuiApplication>
 
-#include "TriangleWindow.h"
+#include "../playground/OpenGLWindow/TriangleWindow.h"
 
 using namespace std;
 

@@ -5,7 +5,7 @@
 #include <string>
 #include <QtGui/QGuiApplication>
 
-#include "OpenGLWindow.h"
+#include "playground/OpenGLWindow/OpenGLWindow.h"
 
 using namespace std;
 
