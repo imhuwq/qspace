@@ -77,6 +77,10 @@ add_executable(run_test test.cpp ${PRJ_SOURCES})
 target_link_libraries(run_test ${PRJ_LIBRARIES} gtest_main)
 add_test(NAME run_test COMMAND run_test)
 
-
-add_executable(main main.cpp ${PRJ_SOURCES})
-target_link_libraries(main ${PRJ_LIBRARIES})
+file(GLOB_RECURSE play_sources playground/play_*.cpp)
+foreach (play_src ${play_sources})
+    get_filename_component(play_name ${play_src} NAME_WE)
+    add_executable(${play_name} ${play_src} ${PRJ_SOURCES})
+    target_link_libraries(${play_name} ${PRJ_LIBRARIES})
+endforeach ()
+add_executable(main main.cpp)
