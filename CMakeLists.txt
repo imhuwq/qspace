@@ -77,7 +77,7 @@ add_executable(run_test test.cpp ${PRJ_SOURCES})
 target_link_libraries(run_test ${PRJ_LIBRARIES} gtest_main)
 add_test(NAME run_test COMMAND run_test)
 
-add_executable(main main.cpp)
-
+add_executable(main main.cpp ${PRJ_SOURCES})
+target_link_libraries(main ${PRJ_LIBRARIES})
 
 add_subdirectory(playground)
