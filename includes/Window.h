@@ -10,22 +10,16 @@
 #include <QOpenGLVertexArrayObject>
 #include <QOpenGLShaderProgram>
 
+#include "Vertex.h"
+#include "Transform3D.h"
+
 class Window : public QOpenGLWindow, protected QOpenGLFunctions {
 Q_OBJECT
 public:
-    Window() {
-        QSurfaceFormat format;
-        format.setRenderableType(QSurfaceFormat::OpenGL);
-        format.setProfile(QSurfaceFormat::CoreProfile);
-        format.setVersion(3, 3);
-        format.setSamples(16);
-        format.setDepthBufferSize(24);
-        format.setStencilBufferSize(8);
-        setFormat(format);
-    }
+    Window();
 
     ~Window() {
-        makeCurrent();
+        makeCurrent();  // http://doc.qt.io/qt-5/qopenglwindow.html#dtor.QOpenGLWindow
         teardownGL();
     }
 
@@ -38,10 +32,18 @@ protected:
 
     void teardownGL();
 
+protected slots:
+
+    void update();
+
 private:
     QOpenGLBuffer m_buffer;
     QOpenGLVertexArrayObject m_vao;
     QOpenGLShaderProgram *m_program;
+    int u_modelToWorldID;
+    int u_worldToViewID;
+    QMatrix4x4 m_projection;
+    Transform3D m_transform;
 
     void printContextInformation();
 };
