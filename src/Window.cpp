@@ -76,7 +76,8 @@ void Window::initializeGL() {
         m_program->bind();
 
         u_modelToWorldID = m_program->uniformLocation("modelToWorld");
-        u_worldToViewID = m_program->uniformLocation("worldToView");
+        u_worldToCameraID = m_program->uniformLocation("worldToCamera");
+        u_cameraToViewID = m_program->uniformLocation("cameraToView");
 
         m_buffer.create();
         m_buffer.bind();
@@ -106,7 +107,8 @@ void Window::paintGL() {
     glClear(GL_COLOR_BUFFER_BIT);
 
     m_program->bind();
-    m_program->setUniformValue(u_worldToViewID, m_projection);
+    m_program->setUniformValue(u_worldToCameraID, m_camera.toMatrix());
+    m_program->setUniformValue(u_cameraToViewID, m_projection);
 
     {
         m_vao.bind();
@@ -143,6 +145,61 @@ void Window::printContextInformation() {
 }
 
 void Window::update() {
+    Input::update();
+
+    if (Input::buttonPressed(Qt::MidButton)) {
+        static const float transSpeed = 0.5f;
+        static const float rotSpeed = 0.5f;
+
+        m_camera.rotate(-rotSpeed * Input::mouseDelta().x(), Camera3D::LocalUp);
+        m_camera.rotate(-rotSpeed * Input::mouseDelta().y(), m_camera.right());
+
+        QVector3D translation;
+        if (Input::keyPressed(Qt::Key_W)) {
+            translation += m_camera.forward();
+        }
+        if (Input::keyPressed(Qt::Key_S)) {
+            translation -= m_camera.forward();
+        }
+        if (Input::keyPressed(Qt::Key_A)) {
+            translation -= m_camera.right();
+        }
+        if (Input::keyPressed(Qt::Key_D)) {
+            translation += m_camera.right();
+        }
+        if (Input::keyPressed(Qt::Key_Q)) {
+            translation -= m_camera.up();
+        }
+        if (Input::keyPressed(Qt::Key_E)) {
+            translation += m_camera.up();
+        }
+        m_camera.translate(transSpeed * translation);
+    }
+
     m_transform.rotate(1.0f, QVector3D(0.4f, 0.3f, 0.3f));
     QOpenGLWindow::update();
+}
+
+void Window::keyPressEvent(QKeyEvent *event) {
+    if (event->isAutoRepeat()) {
+        event->ignore();
+    } else {
+        Input::registerKeyPress(event->key());
+    }
+}
+
+void Window::keyReleaseEvent(QKeyEvent *event) {
+    if (event->isAutoRepeat()) {
+        event->ignore();
+    } else {
+        Input::registerKeyRelease(event->key());
+    }
+}
+
+void Window::mousePressEvent(QMouseEvent *event) {
+    Input::registerMousePress(event->button());
+}
+
+void Window::mouseReleaseEvent(QMouseEvent *event) {
+    Input::registerMouseRelease(event->button());
 }

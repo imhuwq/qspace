@@ -1,5 +1,9 @@
 #include "Transform3D.h"
 
+const QVector3D Transform3D::LocalForward(0.0f, 0.0f, 1.0f);
+const QVector3D Transform3D::LocalUp(0.0f, 1.0f, 0.0f);
+const QVector3D Transform3D::LocalRight(1.0f, 0.0f, 0.0f);
+
 QDebug operator<<(QDebug dbg, const Transform3D &transform) {
     dbg << "Transform3D\n{\n";
     dbg << "Position: <" << transform.translation().x() << ", " << transform.translation().y() << ", " << transform.translation().z() << ">\n";

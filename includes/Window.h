@@ -9,9 +9,12 @@
 #include <QOpenGLBuffer>
 #include <QOpenGLVertexArrayObject>
 #include <QOpenGLShaderProgram>
+#include <QKeyEvent>
 
 #include "Vertex.h"
 #include "Transform3D.h"
+#include "Camera3D.h"
+#include "Input.h"
 
 class Window : public QOpenGLWindow, protected QOpenGLFunctions {
 Q_OBJECT
@@ -36,12 +39,24 @@ protected slots:
 
     void update();
 
+protected:
+protected:
+    void keyPressEvent(QKeyEvent *event);
+
+    void keyReleaseEvent(QKeyEvent *event);
+
+    void mousePressEvent(QMouseEvent *event);
+
+    void mouseReleaseEvent(QMouseEvent *event);
+
 private:
     QOpenGLBuffer m_buffer;
     QOpenGLVertexArrayObject m_vao;
     QOpenGLShaderProgram *m_program;
     int u_modelToWorldID;
-    int u_worldToViewID;
+    int u_worldToCameraID;
+    int u_cameraToViewID;
+    Camera3D m_camera;
     QMatrix4x4 m_projection;
     Transform3D m_transform;
 

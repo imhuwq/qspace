@@ -7,6 +7,10 @@
 
 class Transform3D {
 public:
+    static const QVector3D LocalForward;
+    static const QVector3D LocalUp;
+    static const QVector3D LocalRight;
+
     Transform3D() : m_dirty(true), m_scale(1.0f, 1.0f, 1.0f) {}
 
     // transform by
@@ -126,6 +130,18 @@ public:
         return m_world;
     }
 
+    QVector3D forward() const {
+        return m_rotation.rotatedVector(LocalForward);
+    }
+
+    QVector3D up() const {
+        return m_rotation.rotatedVector(LocalUp);
+    }
+
+    QVector3D right() const {
+        return m_rotation.rotatedVector(LocalRight);
+    }
+
 private:
     bool m_dirty;
     QVector3D m_translation;
@@ -143,7 +159,5 @@ private:
 };
 
 Q_DECLARE_TYPEINFO(Transform3D, Q_MOVABLE_TYPE);
-
-
 
 #endif //QSPACE_TRANSFORM3D_H
