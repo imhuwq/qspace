@@ -42,28 +42,25 @@ set(PRJ_LIBRARIES "")
 set(PRJ_SOURCES "")
 
 # packages required
-find_package(OpenCV REQUIRED)
-find_package(Boost COMPONENTS filesystem system)
-find_package(OpenSSL REQUIRED COMPONENTS ssl)
 find_package(Qt5Core)
 find_package(Qt5Gui)
 find_package(Qt5Widgets)
+find_package(ASSIMP)
 
 # include dirs
 list(APPEND PRJ_INCLUDE_DIRS includes)
-list(APPEND PRJ_INCLUDE_DIRS ${Boost_INCLUDE_DIRS})
-list(APPEND PRJ_INCLUDE_DIRS "${Qt5Core_INCLUDE_DIRS}")
-list(APPEND PRJ_INCLUDE_DIRS "${Qt5Gui_INCLUDE_DIRS}")
-list(APPEND PRJ_INCLUDE_DIRS "${Qt5Widgets_INCLUDE_DIRS}")
+list(APPEND PRJ_INCLUDE_DIRS ${Qt5Core_INCLUDE_DIRS})
+list(APPEND PRJ_INCLUDE_DIRS ${Qt5Gui_INCLUDE_DIRS})
+list(APPEND PRJ_INCLUDE_DIRS ${Qt5Widgets_INCLUDE_DIRS})
+list(APPEND PRJ_INCLUDE_DIRS ${ASSIMP_INCLUDE_DIRS})
 list(REMOVE_DUPLICATES PRJ_INCLUDE_DIRS)
 include_directories(${PRJ_INCLUDE_DIRS})
 
 # libraries
-list(APPEND PRJ_LIBRARIES ${Boost_LIBRARIES})
-list(APPEND PRJ_LIBRARIES ${CMAKE_DL_LIBS})
 list(APPEND PRJ_LIBRARIES ${Qt5Core_LIBRARIES})
 list(APPEND PRJ_LIBRARIES ${Qt5Gui_LIBRARIES})
 list(APPEND PRJ_LIBRARIES ${Qt5Widgets_LIBRARIES})
+list(APPEND PRJ_LIBRARIES ${ASSIMP_LIBRARIES})
 
 
 # source files
