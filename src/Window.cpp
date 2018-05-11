@@ -147,32 +147,14 @@ void Window::printContextInformation() {
 void Window::update() {
     Input::update();
 
-    if (Input::buttonPressed(Qt::MidButton)) {
-        static const float transSpeed = 0.5f;
-        static const float rotSpeed = 0.5f;
+    if (Input::buttonPressed(Qt::LeftButton)) {
+        static const float transSpeed = 0.3f;
+        static const float rotSpeed = 0.3f;
 
         m_camera.rotate(-rotSpeed * Input::mouseDelta().x(), Camera3D::LocalUp);
         m_camera.rotate(-rotSpeed * Input::mouseDelta().y(), m_camera.right());
 
         QVector3D translation;
-        if (Input::keyPressed(Qt::Key_W)) {
-            translation += m_camera.forward();
-        }
-        if (Input::keyPressed(Qt::Key_S)) {
-            translation -= m_camera.forward();
-        }
-        if (Input::keyPressed(Qt::Key_A)) {
-            translation -= m_camera.right();
-        }
-        if (Input::keyPressed(Qt::Key_D)) {
-            translation += m_camera.right();
-        }
-        if (Input::keyPressed(Qt::Key_Q)) {
-            translation -= m_camera.up();
-        }
-        if (Input::keyPressed(Qt::Key_E)) {
-            translation += m_camera.up();
-        }
         m_camera.translate(transSpeed * translation);
     }
 
