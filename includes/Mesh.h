@@ -13,9 +13,21 @@ public:
 
     unsigned int indexCount() const { return m_indexCount; }
 
+    void setIndexCount(unsigned int count) {
+        m_indexCount = count;
+    }
+
     unsigned int indexOffset() const { return m_indexOffset; }
 
-    const QSharedPointer<Material> &material() const { return m_material; };
+    void setIndexOffset(unsigned int index) {
+        m_indexOffset = index;
+    }
+
+    const QSharedPointer<Material> material() const { return m_material; };
+
+    QSharedPointer<Material> material() { return m_material; };
+
+    void setMaterial(const QSharedPointer<Material> &material) { m_material = material; }
 
 private:
     QString m_name;

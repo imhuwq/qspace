@@ -1,63 +1,17 @@
 #include "Window.h"
 
-// Front Verticies
-#define VERTEX_FTR Vertex( QVector3D( 0.5f,  0.5f,  0.5f), QVector3D( 1.0f, 0.0f, 0.0f ) )
-#define VERTEX_FTL Vertex( QVector3D(-0.5f,  0.5f,  0.5f), QVector3D( 0.0f, 1.0f, 0.0f ) )
-#define VERTEX_FBL Vertex( QVector3D(-0.5f, -0.5f,  0.5f), QVector3D( 0.0f, 0.0f, 1.0f ) )
-#define VERTEX_FBR Vertex( QVector3D( 0.5f, -0.5f,  0.5f), QVector3D( 0.0f, 0.0f, 0.0f ) )
+Window::Window() : m_vbo(QOpenGLBuffer::VertexBuffer), m_ibo(QOpenGLBuffer::IndexBuffer) {
+    m_scene = QSharedPointer<Scene>(new Scene);
 
-// Back Verticies
-#define VERTEX_BTR Vertex( QVector3D( 0.5f,  0.5f, -0.5f), QVector3D( 1.0f, 1.0f, 0.0f ) )
-#define VERTEX_BTL Vertex( QVector3D(-0.5f,  0.5f, -0.5f), QVector3D( 0.0f, 1.0f, 1.0f ) )
-#define VERTEX_BBL Vertex( QVector3D(-0.5f, -0.5f, -0.5f), QVector3D( 1.0f, 0.0f, 1.0f ) )
-#define VERTEX_BBR Vertex( QVector3D( 0.5f, -0.5f, -0.5f), QVector3D( 1.0f, 1.0f, 1.0f ) )
-
-// Create a colored cube
-static const Vertex sg_vertices[] = {
-        // Face 1 (Front)
-        VERTEX_FTR, VERTEX_FTL, VERTEX_FBL,
-        VERTEX_FBL, VERTEX_FBR, VERTEX_FTR,
-        // Face 2 (Back)
-        VERTEX_BBR, VERTEX_BTL, VERTEX_BTR,
-        VERTEX_BTL, VERTEX_BBR, VERTEX_BBL,
-        // Face 3 (Top)
-        VERTEX_FTR, VERTEX_BTR, VERTEX_BTL,
-        VERTEX_BTL, VERTEX_FTL, VERTEX_FTR,
-        // Face 4 (Bottom)
-        VERTEX_FBR, VERTEX_FBL, VERTEX_BBL,
-        VERTEX_BBL, VERTEX_BBR, VERTEX_FBR,
-        // Face 5 (Left)
-        VERTEX_FBL, VERTEX_FTL, VERTEX_BTL,
-        VERTEX_FBL, VERTEX_BTL, VERTEX_BBL,
-        // Face 6 (Right)
-        VERTEX_FTR, VERTEX_FBR, VERTEX_BBR,
-        VERTEX_BBR, VERTEX_BTR, VERTEX_FTR
-};
-
-#undef VERTEX_BBR
-#undef VERTEX_BBL
-#undef VERTEX_BTL
-#undef VERTEX_BTR
-
-#undef VERTEX_FBR
-#undef VERTEX_FBL
-#undef VERTEX_FTL
-#undef VERTEX_FTR
-
-Window::Window() {
-    {
-        QSurfaceFormat format;
-        format.setRenderableType(QSurfaceFormat::OpenGL);
-        format.setProfile(QSurfaceFormat::CoreProfile);
-        format.setVersion(3, 3);
-        format.setSamples(16);
-        format.setDepthBufferSize(24);
-        format.setStencilBufferSize(8);
-        setFormat(format);
-    }
-    {
-        m_transform.translate(0.0f, 0.0f, -5.0f);
-    }
+    QSurfaceFormat format;
+    format.setRenderableType(QSurfaceFormat::OpenGL);
+    format.setProfile(QSurfaceFormat::CoreProfile);
+    format.setVersion(3, 3);
+    format.setSamples(16);
+    format.setDepthBufferSize(24);
+    format.setStencilBufferSize(8);
+    setFormat(format);
+    m_transform.translate(0.0f, 0.0f, -5.0f);
 }
 
 void Window::initializeGL() {
@@ -68,34 +22,36 @@ void Window::initializeGL() {
     glEnable(GL_CULL_FACE);
     glClearColor(0.7f, 0.7f, 0.7f, 1.0f);
 
-    {
-        m_program = new QOpenGLShaderProgram();
-        m_program->addShaderFromSourceFile(QOpenGLShader::Vertex, "shaders/simple.vert");
-        m_program->addShaderFromSourceFile(QOpenGLShader::Fragment, "shaders/simple.frag");
-        m_program->link();
-        m_program->bind();
+    m_loader.Load("test_files/cube.obj", m_scene);
 
-        u_modelToWorldID = m_program->uniformLocation("modelToWorld");
-        u_worldToCameraID = m_program->uniformLocation("worldToCamera");
-        u_cameraToViewID = m_program->uniformLocation("cameraToView");
+    m_shd = new QOpenGLShaderProgram();
+    m_shd->addShaderFromSourceFile(QOpenGLShader::Vertex, "shaders/simple.vert");
+    m_shd->addShaderFromSourceFile(QOpenGLShader::Fragment, "shaders/simple.frag");
+    m_shd->link();
+    m_shd->bind();
 
-        m_buffer.create();
-        m_buffer.bind();
-        m_buffer.setUsagePattern(QOpenGLBuffer::StaticDraw);
-        m_buffer.allocate(sg_vertices, sizeof(sg_vertices));  // http://doc.qt.io/qt-5/qopenglbuffer.html#allocate
+    u_modelToWorldID = m_shd->uniformLocation("modelToWorld");
+    u_worldToCameraID = m_shd->uniformLocation("worldToCamera");
+    u_cameraToViewID = m_shd->uniformLocation("cameraToView");
 
-        m_vao.create();
-        m_vao.bind();
-        m_program->enableAttributeArray(0);
-        m_program->enableAttributeArray(1);
-        m_program->setAttributeBuffer(0, GL_FLOAT, Vertex::positionOffset(), Vertex::PositionTupleSize, Vertex::stride());
-        m_program->setAttributeBuffer(1, GL_FLOAT, Vertex::colorOffset(), Vertex::ColorTupleSize,
-                                      Vertex::stride());  // http://doc.qt.io/qt-5/qopenglshaderprogram.html#setAttributeBuffer
+    m_vao.create();
+    m_vao.bind();
 
-        m_vao.release();
-        m_buffer.release();
-        m_program->release();
-    }
+    m_vbo.create();
+    m_vbo.bind();
+    m_vbo.setUsagePattern(QOpenGLBuffer::StaticDraw);
+    m_vbo.allocate(m_scene->vertices().constData(), m_scene->vertices().size() * sizeof(float));
+    m_shd->enableAttributeArray(0);
+    m_shd->setAttributeBuffer(0, GL_FLOAT, 0, 3);
+
+    m_ibo.create();
+    m_ibo.bind();
+    m_ibo.setUsagePattern(QOpenGLBuffer::StaticDraw);
+    m_ibo.allocate(m_scene->indices().constData(), m_scene->indices().size() * sizeof(unsigned int));
+
+    m_vao.release();
+    m_vbo.release();
+    m_shd->release();
 }
 
 void Window::resizeGL(int w, int h) {
@@ -106,24 +62,22 @@ void Window::resizeGL(int w, int h) {
 void Window::paintGL() {
     glClear(GL_COLOR_BUFFER_BIT);
 
-    m_program->bind();
-    m_program->setUniformValue(u_worldToCameraID, m_camera.toMatrix());
-    m_program->setUniformValue(u_cameraToViewID, m_projection);
+    m_shd->bind();
+    m_shd->setUniformValue(u_worldToCameraID, m_camera.toMatrix());
+    m_shd->setUniformValue(u_cameraToViewID, m_projection);
 
-    {
-        m_vao.bind();
-        m_program->setUniformValue(u_modelToWorldID, m_transform.toMatrix());
-        glDrawArrays(GL_TRIANGLES, 0, sizeof(sg_vertices) / sizeof(sg_vertices[0]));
-        m_vao.release();
-    }
+    m_vao.bind();
+    m_shd->setUniformValue(u_modelToWorldID, m_transform.toMatrix());
+    glDrawElements(GL_TRIANGLES, m_scene->indices().size(), GL_UNSIGNED_INT, (void *) 0);
+    m_vao.release();
 
-    m_program->release();
+    m_shd->release();
 }
 
 void Window::teardownGL() {
     m_vao.destroy();
-    m_buffer.destroy();
-    delete m_program;
+    m_vbo.destroy();
+    delete m_shd;
 }
 
 void Window::printContextInformation() {

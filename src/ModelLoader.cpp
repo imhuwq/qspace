@@ -1,6 +1,8 @@
 #include "ModelLoader.h"
 
-bool ModelLoader::Load(const QString &pathToFile) {
+bool ModelLoader::Load(const QString &pathToFile, QSharedPointer<Scene> &scene) {
+    m_scene = scene;
+
     Assimp::Importer importer;
     const aiScene *ai_scene = importer.ReadFile(pathToFile.toStdString(),
                                                 aiProcess_GenSmoothNormals |
@@ -15,26 +17,35 @@ bool ModelLoader::Load(const QString &pathToFile) {
 
     if (ai_scene->HasMaterials()) {
         for (unsigned int index = 0; index < ai_scene->mNumMaterials; index++) {
-            m_materials.push_back(processMaterial(ai_scene->mMaterials[index]));
+            QSharedPointer<Material> material = processMaterial(ai_scene->mMaterials[index]);
+            m_scene->addToMaterials(material);
         }
     }
 
     if (ai_scene->HasMeshes()) {
         for (unsigned int index = 0; index < ai_scene->mNumMeshes; index++) {
-            m_meshes.push_back(processMesh(ai_scene->mMeshes[index]));
+            QSharedPointer<Mesh> mesh = processMesh(ai_scene->mMeshes[index]);
+            m_scene->addToMeshes(mesh);
         }
     } else {
         qDebug() << "Error: No meshes found";
         return false;
     }
+
+    if (ai_scene->mRootNode != nullptr) {
+        QSharedPointer<Node> rootNode(new Node);
+        processNode(ai_scene, ai_scene->mRootNode, QSharedPointer<Node>(), rootNode);
+        m_scene->setRootNode(rootNode);
+    }
 }
+
 
 QSharedPointer<Material> ModelLoader::processMaterial(aiMaterial *ai_material) {
     QSharedPointer<Material> material(new Material);
     aiString ai_mat_name;
     ai_material->Get(AI_MATKEY_NAME, ai_mat_name);
     if (ai_mat_name.length > 0) {
-        material->setName(ai_mat_name.C_Str());
+        material->setName(QString(ai_mat_name.C_Str()));
     }
 
     int shadingModel;
@@ -59,7 +70,63 @@ QSharedPointer<Material> ModelLoader::processMaterial(aiMaterial *ai_material) {
 
 QSharedPointer<Mesh> ModelLoader::processMesh(aiMesh *ai_mesh) {
     QSharedPointer<Mesh> mesh(new Mesh);
-    QString meshName = ai_mesh->mName.length > 0 ? ai_mesh->mName : "";
-    mesh->setName(meshName);
-    mesh->setIndexOffset(m_indices.size());
+    aiString meshName = ai_mesh->mName.length > 0 ? ai_mesh->mName : aiString("");
+    mesh->setName(meshName.C_Str());
+    mesh->setIndexOffset((unsigned int) m_scene->indices().size());
+    unsigned int indexCountBefore = (unsigned int) m_scene->indices().size();
+    unsigned int vertexIndexOffset = (unsigned int) m_scene->indices().size() / 3;
+
+    if (ai_mesh->mNumVertices > 0) {
+        for (unsigned int index = 0; index < ai_mesh->mNumVertices; index++) {
+            aiVector3D &vec = ai_mesh->mVertices[index];
+            m_scene->addToVertices(vec.x);
+            m_scene->addToVertices(vec.y);
+            m_scene->addToVertices(vec.z);
+        }
+    }
+
+    if (ai_mesh->HasNormals()) {
+        for (unsigned int index = 0; index < ai_mesh->mNumVertices; index++) {
+            aiVector3D &vec = ai_mesh->mNormals[index];
+            m_scene->addToNormals(vec.x);
+            m_scene->addToNormals(vec.y);
+            m_scene->addToNormals(vec.z);
+        }
+    }
+
+    for (unsigned int index = 0; index < ai_mesh->mNumFaces; index++) {
+        aiFace *ai_face = &ai_mesh->mFaces[index];
+        if (ai_face->mNumIndices != 3) {
+            qDebug() << "Warning: Mesh face with not exactly 3 indices, ignoring this primitive.";
+            continue;
+        }
+
+        m_scene->addToIndices(ai_face->mIndices[0] + vertexIndexOffset);
+        m_scene->addToIndices(ai_face->mIndices[1] + vertexIndexOffset);
+        m_scene->addToIndices(ai_face->mIndices[2] + vertexIndexOffset);
+    }
+
+    mesh->setIndexCount(m_scene->indices().size() - indexCountBefore);
+
+    mesh->setMaterial(m_scene->getMaterialAt(ai_mesh->mMaterialIndex));
+
+    return mesh;
+}
+
+void ModelLoader::processNode(const aiScene *ai_scene, aiNode *ai_node, QSharedPointer<Node> parentNode, QSharedPointer<Node> node) {
+    QString name = ai_node->mName.length != 0 ? ai_node->mName.C_Str() : "";
+    node->setName(name);
+    node->setTransformation(QMatrix4x4(ai_node->mTransformation[0]));
+    node->resizeMeshes(ai_node->mNumMeshes);
+
+    for (unsigned int index = 0; index < ai_node->mNumMeshes; index++) {
+        QSharedPointer<Mesh> mesh = m_scene->getMeshAt(ai_node->mMeshes[index]);
+        node->setMeshAt(mesh, index);
+    }
+
+    for (unsigned int index = 0; index < ai_node->mNumChildren; index++) {
+        QSharedPointer<Node> childNode(new Node);
+        node->addNode(childNode);
+        processNode(ai_scene, ai_node->mChildren[index], node, childNode);
+    }
 }

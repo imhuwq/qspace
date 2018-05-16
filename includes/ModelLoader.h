@@ -9,34 +9,21 @@
 #include <assimp/Importer.hpp>
 
 #include "Node.h"
+#include "Scene.h"
 
 class ModelLoader {
 public:
-    ModelLoader();
-
-    bool Load(const QString &pathToFile);
-
-    void getBufferData(QVector<float> **vertices, QVector<float> **normals, QVector<unsigned int> **indices);
-
-    const QSharedPointer<Node> getNodeData() { return m_rootNode; };
+    bool Load(const QString &pathToFile, QSharedPointer<Scene> &scene);
 
 private:
-    QVector<float> m_vertices;
-    QVector<float> m_normals;
-    QVector<unsigned int> m_indices;
-    QVector<QSharedPointer<Material>> m_materials;
-    QVector<QSharedPointer<Mesh>> m_meshes;
-    QSharedPointer<Node> m_rootNode;
+
+    QSharedPointer<Scene> m_scene;
 
     QSharedPointer<Material> processMaterial(aiMaterial *ai_material);
 
     QSharedPointer<Mesh> processMesh(aiMesh *ai_mesh);
 
-    void ProcessNode(const aiScene *ai_scene, aiNode *ai_node, Node *parentNode, Node &newNode);
-
-    void transformToUnitCoordinates();
-
-    void findObjectDimensions(Node *node, QMatrix4x4 transformation, QVector3D &minDimension, QVector3D &maxDimension);
+    void processNode(const aiScene *ai_scene, aiNode *ai_node, QSharedPointer<Node> parentNode, QSharedPointer<Node> newNode);
 };
 
 #endif //QSPACE_MODELLOADER_H
