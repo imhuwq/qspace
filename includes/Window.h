@@ -29,6 +29,12 @@ public:
     }
 
 protected:
+    void loadModelFile(const QString &filePath = "");
+
+    void createBuffers();
+
+    void createShaders();
+
     void initializeGL() override;
 
     void resizeGL(int w, int h) override;
@@ -52,6 +58,7 @@ protected:
     void mouseReleaseEvent(QMouseEvent *event);
 
 private:
+    bool m_glInitialized;
     QOpenGLBuffer m_vbo;
     QOpenGLBuffer m_ibo;
     QOpenGLVertexArrayObject m_vao;
@@ -63,7 +70,7 @@ private:
     QMatrix4x4 m_projection;
     Transform3D m_transform;
 
-    ModelLoader m_loader;
+    QSharedPointer<ModelLoader> m_loader;
     QSharedPointer<Scene> m_scene;
 
     void printContextInformation();

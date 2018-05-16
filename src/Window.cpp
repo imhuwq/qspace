@@ -1,7 +1,6 @@
 #include "Window.h"
 
-Window::Window() : m_vbo(QOpenGLBuffer::VertexBuffer), m_ibo(QOpenGLBuffer::IndexBuffer) {
-    m_scene = QSharedPointer<Scene>(new Scene);
+Window::Window() : m_glInitialized(false), m_shd(nullptr), m_vbo(QOpenGLBuffer::VertexBuffer), m_ibo(QOpenGLBuffer::IndexBuffer) {
 
     QSurfaceFormat format;
     format.setRenderableType(QSurfaceFormat::OpenGL);
@@ -14,6 +13,56 @@ Window::Window() : m_vbo(QOpenGLBuffer::VertexBuffer), m_ibo(QOpenGLBuffer::Inde
     m_transform.translate(0.0f, 0.0f, -5.0f);
 }
 
+void Window::createShaders() {
+    if (m_glInitialized) m_shd->release();
+    else m_shd = new QOpenGLShaderProgram();
+
+    m_shd->addShaderFromSourceFile(QOpenGLShader::Vertex, "shaders/simple.vert");
+    m_shd->addShaderFromSourceFile(QOpenGLShader::Fragment, "shaders/simple.frag");
+    m_shd->link();
+    m_shd->bind();
+};
+
+void Window::createBuffers() {
+#define CREATE_OR_RELEASE(x) if (m_glInitialized) (x).release();\
+                             else (x).create();
+
+    u_modelToWorldID = m_shd->uniformLocation("modelToWorld");
+    u_worldToCameraID = m_shd->uniformLocation("worldToCamera");
+    u_cameraToViewID = m_shd->uniformLocation("cameraToView");
+
+    CREATE_OR_RELEASE(m_vao);
+    m_vao.bind();
+
+    CREATE_OR_RELEASE(m_vbo);
+    m_vbo.bind();
+    m_vbo.setUsagePattern(QOpenGLBuffer::StaticDraw);
+    m_vbo.allocate(m_scene->vertices().constData(), m_scene->vertices().size() * sizeof(float));
+    m_shd->enableAttributeArray(0);
+    m_shd->setAttributeBuffer(0, GL_FLOAT, 0, 3);
+
+    CREATE_OR_RELEASE(m_ibo);
+    m_ibo.bind();
+    m_ibo.setUsagePattern(QOpenGLBuffer::StaticDraw);
+    m_ibo.allocate(m_scene->indices().constData(), m_scene->indices().size() * sizeof(unsigned int));
+
+    m_vao.release();
+    m_vbo.release();
+
+#undef CREATE_OR_RELEASE
+}
+
+void Window::loadModelFile(const QString &filePath) {
+    m_scene = QSharedPointer<Scene>(new Scene);
+    m_loader = QSharedPointer<ModelLoader>(new ModelLoader);
+
+    if (filePath.length() == 0) m_loader->Load("test_files/cube.obj", m_scene);
+    else m_loader->Load(filePath, m_scene);
+
+    createShaders();
+    createBuffers();
+}
+
 void Window::initializeGL() {
     initializeOpenGLFunctions();
     connect(this, SIGNAL(frameSwapped()), this, SLOT(update()));
@@ -22,36 +71,8 @@ void Window::initializeGL() {
     glEnable(GL_CULL_FACE);
     glClearColor(0.7f, 0.7f, 0.7f, 1.0f);
 
-    m_loader.Load("test_files/cube.obj", m_scene);
-
-    m_shd = new QOpenGLShaderProgram();
-    m_shd->addShaderFromSourceFile(QOpenGLShader::Vertex, "shaders/simple.vert");
-    m_shd->addShaderFromSourceFile(QOpenGLShader::Fragment, "shaders/simple.frag");
-    m_shd->link();
-    m_shd->bind();
-
-    u_modelToWorldID = m_shd->uniformLocation("modelToWorld");
-    u_worldToCameraID = m_shd->uniformLocation("worldToCamera");
-    u_cameraToViewID = m_shd->uniformLocation("cameraToView");
-
-    m_vao.create();
-    m_vao.bind();
-
-    m_vbo.create();
-    m_vbo.bind();
-    m_vbo.setUsagePattern(QOpenGLBuffer::StaticDraw);
-    m_vbo.allocate(m_scene->vertices().constData(), m_scene->vertices().size() * sizeof(float));
-    m_shd->enableAttributeArray(0);
-    m_shd->setAttributeBuffer(0, GL_FLOAT, 0, 3);
-
-    m_ibo.create();
-    m_ibo.bind();
-    m_ibo.setUsagePattern(QOpenGLBuffer::StaticDraw);
-    m_ibo.allocate(m_scene->indices().constData(), m_scene->indices().size() * sizeof(unsigned int));
-
-    m_vao.release();
-    m_vbo.release();
-    m_shd->release();
+    loadModelFile();
+    m_glInitialized = true;
 }
 
 void Window::resizeGL(int w, int h) {
@@ -69,8 +90,8 @@ void Window::paintGL() {
     m_vao.bind();
     m_shd->setUniformValue(u_modelToWorldID, m_transform.toMatrix());
     glDrawElements(GL_TRIANGLES, m_scene->indices().size(), GL_UNSIGNED_INT, (void *) 0);
-    m_vao.release();
 
+    m_vao.release();
     m_shd->release();
 }
 
