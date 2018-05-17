@@ -3,6 +3,7 @@
 
 #include <QString>
 #include <QVector>
+#include <QFileInfo>
 #include <QSharedPointer>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
@@ -13,11 +14,15 @@
 
 class ModelLoader {
 public:
+    static QVector<QString> fileFormat;
+
+    bool checkFileFormatIsOk(const QString &filePath);
+
     bool Load(const QString &pathToFile, QSharedPointer<Scene> &scene);
 
 private:
-
     QSharedPointer<Scene> m_scene;
+
 
     QSharedPointer<Material> processMaterial(aiMaterial *ai_material);
 

@@ -14,8 +14,12 @@ GLWidget::GLWidget() : m_glInitialized(false), m_shd(nullptr), m_vbo(QOpenGLBuff
 }
 
 void GLWidget::createShaders() {
-    if (m_glInitialized) m_shd->release();
-    else m_shd = new QOpenGLShaderProgram();
+    if (m_glInitialized) {
+        m_shd->release();
+        delete m_shd;
+    }
+
+    m_shd = new QOpenGLShaderProgram();
 
     m_shd->addShaderFromSourceFile(QOpenGLShader::Vertex, "shaders/simple.vert");
     m_shd->addShaderFromSourceFile(QOpenGLShader::Fragment, "shaders/simple.frag");
@@ -52,12 +56,17 @@ void GLWidget::createBuffers() {
 #undef CREATE_OR_RELEASE
 }
 
-void GLWidget::loadModelFile(const QString &filePath) {
+void GLWidget::loadModelFile(QString filePath) {
+    filePath = filePath.length() == 0 ? "test_files/cube.obj" : filePath;
+
+    if (!m_loader->checkFileFormatIsOk(filePath)) {
+        qDebug() << "Unsupported file format: " << filePath << "\n";
+        return;
+    }
+
     m_scene = QSharedPointer<Scene>(new Scene);
     m_loader = QSharedPointer<ModelLoader>(new ModelLoader);
-
-    if (filePath.length() == 0) m_loader->Load("test_files/cube.obj", m_scene);
-    else m_loader->Load(filePath, m_scene);
+    if (!m_loader->Load(filePath, m_scene)) qDebug() << "Failed to load file: " << filePath << "\n";
 
     createShaders();
     createBuffers();

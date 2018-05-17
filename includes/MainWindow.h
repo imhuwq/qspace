@@ -4,9 +4,11 @@
 #include <QMainWindow>
 #include <QDesktopWidget>
 #include <QStyle>
+#include <QDragEnterEvent>
+#include <QDropEvent>
+#include <QMimeData>
 
 #include "GLWidget.h"
-
 
 class MainWindow : public QMainWindow {
 Q_OBJECT
@@ -14,6 +16,11 @@ public:
     explicit MainWindow(QWidget *parent = nullptr);
 
     ~MainWindow();
+
+protected:
+    void dragEnterEvent(QDragEnterEvent *e);
+
+    void dropEvent(QDropEvent *e);
 
 private:
     GLWidget *m_glWidget;

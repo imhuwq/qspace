@@ -28,7 +28,7 @@ public:
         teardownGL();
     }
 
-    void loadModelFile(const QString &filePath = "");
+    void loadModelFile(QString filePath = "");
 
 protected:
     void createBuffers();

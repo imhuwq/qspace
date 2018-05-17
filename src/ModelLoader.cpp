@@ -1,6 +1,18 @@
 #include "ModelLoader.h"
 
+QVector<QString> ModelLoader::fileFormat = {"obj"};
+
+bool ModelLoader::checkFileFormatIsOk(const QString &filePath) {
+    QFileInfo fileInfo(filePath);
+    if (fileInfo.exists() && !fileInfo.isHidden()) {
+        QString format = fileInfo.suffix().toLower();
+        return fileFormat.contains(format);
+    }
+    return false;
+}
+
 bool ModelLoader::Load(const QString &pathToFile, QSharedPointer<Scene> &scene) {
+    if (!checkFileFormatIsOk(pathToFile)) return false;
     m_scene = scene;
 
     Assimp::Importer importer;
@@ -37,8 +49,8 @@ bool ModelLoader::Load(const QString &pathToFile, QSharedPointer<Scene> &scene) 
         processNode(ai_scene, ai_scene->mRootNode, QSharedPointer<Node>(), rootNode);
         m_scene->setRootNode(rootNode);
     }
+    return true;
 }
-
 
 QSharedPointer<Material> ModelLoader::processMaterial(aiMaterial *ai_material) {
     QSharedPointer<Material> material(new Material);
