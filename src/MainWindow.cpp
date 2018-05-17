@@ -1,14 +1,12 @@
 #include "MainWindow.h"
 #include "Application.h"
 
-
 MainWindow::MainWindow(QWidget *parent) : m_glWidget(new GLWidget()) {
     setupSelfState();
     setupGLWidget();
 }
 
 MainWindow::~MainWindow() { delete m_glWidget; }
-
 
 void MainWindow::setupSelfState() {
     setFixedSize(800, 800);

@@ -1,6 +1,6 @@
 #include "ModelLoader.h"
 
-QVector<QString> ModelLoader::fileFormat = {"obj"};
+QVector<QString> ModelLoader::fileFormat = {"obj", "fbx"};
 
 bool ModelLoader::checkFileFormatIsOk(const QString &filePath) {
     QFileInfo fileInfo(filePath);
@@ -88,21 +88,25 @@ QSharedPointer<Mesh> ModelLoader::processMesh(aiMesh *ai_mesh) {
     unsigned int indexCountBefore = (unsigned int) m_scene->indices().size();
     unsigned int vertexIndexOffset = (unsigned int) m_scene->indices().size() / 3;
 
-    if (ai_mesh->mNumVertices > 0) {
-        for (unsigned int index = 0; index < ai_mesh->mNumVertices; index++) {
-            aiVector3D &vec = ai_mesh->mVertices[index];
-            m_scene->addToVertices(vec.x);
-            m_scene->addToVertices(vec.y);
-            m_scene->addToVertices(vec.z);
-        }
-    }
+    for (unsigned int index = 0; index < ai_mesh->mNumVertices; index++) {
+        // position
+        aiVector3D &vertVec = ai_mesh->mVertices[index];
+        m_scene->addToVertices(vertVec.x);
+        m_scene->addToVertices(vertVec.y);
+        m_scene->addToVertices(vertVec.z);
 
-    if (ai_mesh->HasNormals()) {
-        for (unsigned int index = 0; index < ai_mesh->mNumVertices; index++) {
-            aiVector3D &vec = ai_mesh->mNormals[index];
-            m_scene->addToNormals(vec.x);
-            m_scene->addToNormals(vec.y);
-            m_scene->addToNormals(vec.z);
+        // normal
+        aiVector3D &normVec = ai_mesh->mNormals[index];
+        m_scene->addToNormals(normVec.x);
+        m_scene->addToNormals(normVec.y);
+        m_scene->addToNormals(normVec.z);
+
+        // uv
+        if (ai_mesh->HasTextureCoords(0)) {
+            aiVector3D *textVec = ai_mesh->mTextureCoords[0];
+            m_scene->addToUVs(textVec->x);
+            m_scene->addToUVs(textVec->y);
+            m_scene->addToUVs(textVec->z);
         }
     }
 

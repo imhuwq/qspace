@@ -23,12 +23,12 @@ public:
 private:
     QSharedPointer<Scene> m_scene;
 
-
     QSharedPointer<Material> processMaterial(aiMaterial *ai_material);
 
     QSharedPointer<Mesh> processMesh(aiMesh *ai_mesh);
 
     void processNode(const aiScene *ai_scene, aiNode *ai_node, QSharedPointer<Node> parentNode, QSharedPointer<Node> newNode);
 };
+
 
 #endif //QSPACE_MODELLOADER_H
