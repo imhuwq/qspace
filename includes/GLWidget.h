@@ -28,9 +28,9 @@ public:
         teardownGL();
     }
 
-protected:
     void loadModelFile(const QString &filePath = "");
 
+protected:
     void createBuffers();
 
     void createShaders();
@@ -47,7 +47,6 @@ protected slots:
 
     void update();
 
-protected:
 protected:
     void keyPressEvent(QKeyEvent *event);
 

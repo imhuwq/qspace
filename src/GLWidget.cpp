@@ -138,25 +138,17 @@ void GLWidget::update() {
 }
 
 void GLWidget::keyPressEvent(QKeyEvent *event) {
-    if (event->isAutoRepeat()) {
-        event->ignore();
-    } else {
-        Input::registerKeyPress(event->key());
-    }
+    if (event->isAutoRepeat()) event->ignore();
 }
 
 void GLWidget::keyReleaseEvent(QKeyEvent *event) {
-    if (event->isAutoRepeat()) {
-        event->ignore();
-    } else {
-        Input::registerKeyRelease(event->key());
-    }
+    if (event->isAutoRepeat()) event->ignore();
 }
 
 void GLWidget::mousePressEvent(QMouseEvent *event) {
-    Input::registerMousePress(event->button());
+//    Input::registerMousePress(event->button());
 }
 
 void GLWidget::mouseReleaseEvent(QMouseEvent *event) {
-    Input::registerMouseRelease(event->button());
+//    Input::registerMouseRelease(event->button());
 }
