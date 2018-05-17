@@ -1,9 +1,9 @@
-#ifndef QSPACE_QTRIANGLEWINDOW_H
-#define QSPACE_QTRIANGLEWINDOW_H
+#ifndef QSPACE_GLWIDGET_H
+#define QSPACE_GLWIDGET_H
 
 #include <QDebug>
 #include <QString>
-#include <QOpenGLWindow>
+#include <QOpenGLWidget>
 #include <QOpenGLFunctions>
 #include <QOpenGLPaintDevice>
 #include <QOpenGLBuffer>
@@ -18,12 +18,12 @@
 #include "ModelLoader.h"
 #include "Scene.h"
 
-class Window : public QOpenGLWindow, protected QOpenGLFunctions {
+class GLWidget : public QOpenGLWidget, protected QOpenGLFunctions {
 Q_OBJECT
 public:
-    Window();
+    GLWidget();
 
-    ~Window() {
+    ~GLWidget() {
         makeCurrent();  // http://doc.qt.io/qt-5/qopenglwindow.html#dtor.QOpenGLWindow
         teardownGL();
     }
@@ -76,4 +76,4 @@ private:
     void printContextInformation();
 };
 
-#endif //QSPACE_QTRIANGLEWINDOW_H
+#endif //QSPACE_GLWIDGET_H

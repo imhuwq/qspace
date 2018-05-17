@@ -1,6 +1,6 @@
-#include "Window.h"
+#include "GLWidget.h"
 
-Window::Window() : m_glInitialized(false), m_shd(nullptr), m_vbo(QOpenGLBuffer::VertexBuffer), m_ibo(QOpenGLBuffer::IndexBuffer) {
+GLWidget::GLWidget() : m_glInitialized(false), m_shd(nullptr), m_vbo(QOpenGLBuffer::VertexBuffer), m_ibo(QOpenGLBuffer::IndexBuffer) {
 
     QSurfaceFormat format;
     format.setRenderableType(QSurfaceFormat::OpenGL);
@@ -13,7 +13,7 @@ Window::Window() : m_glInitialized(false), m_shd(nullptr), m_vbo(QOpenGLBuffer::
     m_transform.translate(0.0f, 0.0f, -5.0f);
 }
 
-void Window::createShaders() {
+void GLWidget::createShaders() {
     if (m_glInitialized) m_shd->release();
     else m_shd = new QOpenGLShaderProgram();
 
@@ -23,7 +23,7 @@ void Window::createShaders() {
     m_shd->bind();
 };
 
-void Window::createBuffers() {
+void GLWidget::createBuffers() {
 #define CREATE_OR_RELEASE(x) if (m_glInitialized) (x).release();\
                              else (x).create();
 
@@ -52,7 +52,7 @@ void Window::createBuffers() {
 #undef CREATE_OR_RELEASE
 }
 
-void Window::loadModelFile(const QString &filePath) {
+void GLWidget::loadModelFile(const QString &filePath) {
     m_scene = QSharedPointer<Scene>(new Scene);
     m_loader = QSharedPointer<ModelLoader>(new ModelLoader);
 
@@ -63,7 +63,7 @@ void Window::loadModelFile(const QString &filePath) {
     createBuffers();
 }
 
-void Window::initializeGL() {
+void GLWidget::initializeGL() {
     initializeOpenGLFunctions();
     connect(this, SIGNAL(frameSwapped()), this, SLOT(update()));
     printContextInformation();
@@ -75,12 +75,12 @@ void Window::initializeGL() {
     m_glInitialized = true;
 }
 
-void Window::resizeGL(int w, int h) {
+void GLWidget::resizeGL(int w, int h) {
     m_projection.setToIdentity();
     m_projection.perspective(45.0f, w / float(h), 0.0f, 1000.0f);
 }
 
-void Window::paintGL() {
+void GLWidget::paintGL() {
     glClear(GL_COLOR_BUFFER_BIT);
 
     m_shd->bind();
@@ -95,13 +95,13 @@ void Window::paintGL() {
     m_shd->release();
 }
 
-void Window::teardownGL() {
+void GLWidget::teardownGL() {
     m_vao.destroy();
     m_vbo.destroy();
     delete m_shd;
 }
 
-void Window::printContextInformation() {
+void GLWidget::printContextInformation() {
     QString glType;
     QString glVersion;
     QString glProfile;
@@ -119,7 +119,7 @@ void Window::printContextInformation() {
     qDebug() << qPrintable(glType) << qPrintable(glVersion) << "(" << qPrintable(glProfile) << ")";
 }
 
-void Window::update() {
+void GLWidget::update() {
     Input::update();
 
     if (Input::buttonPressed(Qt::LeftButton)) {
@@ -134,10 +134,10 @@ void Window::update() {
     }
 
     m_transform.rotate(1.0f, QVector3D(0.4f, 0.3f, 0.3f));
-    QOpenGLWindow::update();
+    QOpenGLWidget::update();
 }
 
-void Window::keyPressEvent(QKeyEvent *event) {
+void GLWidget::keyPressEvent(QKeyEvent *event) {
     if (event->isAutoRepeat()) {
         event->ignore();
     } else {
@@ -145,7 +145,7 @@ void Window::keyPressEvent(QKeyEvent *event) {
     }
 }
 
-void Window::keyReleaseEvent(QKeyEvent *event) {
+void GLWidget::keyReleaseEvent(QKeyEvent *event) {
     if (event->isAutoRepeat()) {
         event->ignore();
     } else {
@@ -153,10 +153,10 @@ void Window::keyReleaseEvent(QKeyEvent *event) {
     }
 }
 
-void Window::mousePressEvent(QMouseEvent *event) {
+void GLWidget::mousePressEvent(QMouseEvent *event) {
     Input::registerMousePress(event->button());
 }
 
-void Window::mouseReleaseEvent(QMouseEvent *event) {
+void GLWidget::mouseReleaseEvent(QMouseEvent *event) {
     Input::registerMouseRelease(event->button());
 }

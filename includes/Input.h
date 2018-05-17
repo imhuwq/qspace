@@ -65,7 +65,7 @@ private:
 
     static void reset();
 
-    friend class Window;
+    friend class GLWidget;
 };
 
 #endif //QSPACE_INPUT_H

@@ -1,4 +1,4 @@
-#include "Window.h"
+#include "GLWidget.h"
 
 #include <QtGui/QGuiApplication>
 

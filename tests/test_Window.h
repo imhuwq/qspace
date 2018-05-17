@@ -5,7 +5,7 @@
 #include <string>
 #include <QtGui/QGuiApplication>
 
-#include "Window.h"
+#include "GLWidget.h"
 
 using namespace std;
 
@@ -21,7 +21,7 @@ TEST_F(QTriangleWindowTest, CompileOK) {
 
 TEST_F(QTriangleWindowTest, Constructor) {
     QGuiApplication app(argc, argv);
-    Window window;
+    GLWidget window;
     EXPECT_EQ(1, 1);
 }
 
