@@ -1,12 +1,7 @@
-#include <QGuiApplication>
-#include "Window.h"
+#include "Application.h"
 
 int main(int argc, char **argv) {
-    QGuiApplication app(argc, argv);
+    Application app(argc, argv);
 
-    Window window;
-    window.resize(QSize(800, 800));
-    window.show();
-
-    return app.exec();
+    return app.run();
 }
