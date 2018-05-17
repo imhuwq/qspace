@@ -81,6 +81,7 @@ void GLWidget::initializeGL() {
     glClearColor(0.7f, 0.7f, 0.7f, 1.0f);
 
     loadModelFile();
+    m_transform.rotate(45.0f, QVector3D(0.0f, 1.0f, 0.0f));
     m_glInitialized = true;
 }
 
@@ -129,20 +130,6 @@ void GLWidget::printContextInformation() {
 }
 
 void GLWidget::update() {
-    Input::update();
-
-    if (Input::buttonPressed(Qt::LeftButton)) {
-        static const float transSpeed = 0.3f;
-        static const float rotSpeed = 0.3f;
-
-        m_camera.rotate(-rotSpeed * Input::mouseDelta().x(), Camera3D::LocalUp);
-        m_camera.rotate(-rotSpeed * Input::mouseDelta().y(), m_camera.right());
-
-        QVector3D translation;
-        m_camera.translate(transSpeed * translation);
-    }
-
-    m_transform.rotate(1.0f, QVector3D(0.4f, 0.3f, 0.3f));
     QOpenGLWidget::update();
 }
 
