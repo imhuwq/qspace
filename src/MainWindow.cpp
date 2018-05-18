@@ -46,3 +46,9 @@ void MainWindow::dropEvent(QDropEvent *e) {
         m_glWidget->loadModelFile(fileName);
     }
 }
+
+void MainWindow::keyReleaseEvent(QKeyEvent* e) {
+    if (e->key() == Qt::Key_Escape) {
+        Application::quit();
+    }
+}

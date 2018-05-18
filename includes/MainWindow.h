@@ -22,6 +22,8 @@ protected:
 
     void dropEvent(QDropEvent *e);
 
+    void keyReleaseEvent(QKeyEvent* e);
+
 private:
     GLWidget *m_glWidget;
 
