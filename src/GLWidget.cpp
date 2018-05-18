@@ -91,7 +91,7 @@ void GLWidget::initializeGL() {
 
 void GLWidget::resizeGL(int w, int h) {
     m_projection.setToIdentity();
-    m_projection.perspective(45.0f, w / float(h), 0.0f, 1000.0f);
+    m_projection.perspective(45.0f, w / float(h), 0.001f, 1000.0f);
 }
 
 void GLWidget::paintGL() {
