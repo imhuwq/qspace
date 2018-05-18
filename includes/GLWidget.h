@@ -59,12 +59,10 @@ protected:
 private:
     bool m_glInitialized;
     QOpenGLBuffer m_vbo;
+    QOpenGLBuffer m_tbo;
     QOpenGLBuffer m_ibo;
     QOpenGLVertexArrayObject m_vao;
     QOpenGLShaderProgram *m_shd;
-    int u_modelToWorldID;
-    int u_worldToCameraID;
-    int u_cameraToViewID;
     Camera3D m_camera;
     QMatrix4x4 m_projection;
     Transform3D m_transform;

@@ -1,4 +1,6 @@
 #include "GLWidget.h"
+#include <QImage>
+#include <QOpenGLTexture>
 
 GLWidget::GLWidget() : m_glInitialized(false), m_shd(nullptr), m_vbo(QOpenGLBuffer::VertexBuffer), m_ibo(QOpenGLBuffer::IndexBuffer) {
 
@@ -20,38 +22,40 @@ void GLWidget::createShaders() {
     }
 
     m_shd = new QOpenGLShaderProgram();
-
     m_shd->addShaderFromSourceFile(QOpenGLShader::Vertex, "shaders/simple.vert");
     m_shd->addShaderFromSourceFile(QOpenGLShader::Fragment, "shaders/simple.frag");
     m_shd->link();
     m_shd->bind();
+    m_shd->setUniformValue("texture", 0);
 };
 
 void GLWidget::createBuffers() {
 #define CREATE_OR_RELEASE(x) if (m_glInitialized) (x).release();\
                              else (x).create();
 
-    u_modelToWorldID = m_shd->uniformLocation("modelToWorld");
-    u_worldToCameraID = m_shd->uniformLocation("worldToCamera");
-    u_cameraToViewID = m_shd->uniformLocation("cameraToView");
-
     CREATE_OR_RELEASE(m_vao);
     m_vao.bind();
 
     CREATE_OR_RELEASE(m_vbo);
-    m_vbo.bind();
     m_vbo.setUsagePattern(QOpenGLBuffer::StaticDraw);
+    m_vbo.bind();
     m_vbo.allocate(m_scene->vertices().constData(), m_scene->vertices().size() * sizeof(float));
     m_shd->enableAttributeArray(0);
     m_shd->setAttributeBuffer(0, GL_FLOAT, 0, 3);
+    m_vbo.release();
+
+    CREATE_OR_RELEASE(m_tbo);
+    m_tbo.setUsagePattern(QOpenGLBuffer::StaticDraw);
+    m_tbo.bind();
+    m_tbo.allocate(m_scene->uvs().constData(), m_scene->uvs().size() * sizeof(float));
+    m_shd->enableAttributeArray(1);
+    m_shd->setAttributeBuffer(1, GL_FLOAT, 0, 2);
+    m_tbo.release();
 
     CREATE_OR_RELEASE(m_ibo);
-    m_ibo.bind();
     m_ibo.setUsagePattern(QOpenGLBuffer::StaticDraw);
+    m_ibo.bind();
     m_ibo.allocate(m_scene->indices().constData(), m_scene->indices().size() * sizeof(unsigned int));
-
-    m_vao.release();
-    m_vbo.release();
 
 #undef CREATE_OR_RELEASE
 }
@@ -77,11 +81,11 @@ void GLWidget::initializeGL() {
     connect(this, SIGNAL(frameSwapped()), this, SLOT(update()));
     printContextInformation();
 
+    glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
     glClearColor(0.7f, 0.7f, 0.7f, 1.0f);
 
     loadModelFile();
-    m_transform.rotate(45.0f, QVector3D(0.0f, 1.0f, 0.0f));
     m_glInitialized = true;
 }
 
@@ -91,18 +95,19 @@ void GLWidget::resizeGL(int w, int h) {
 }
 
 void GLWidget::paintGL() {
-    glClear(GL_COLOR_BUFFER_BIT);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    m_shd->bind();
-    m_shd->setUniformValue(u_worldToCameraID, m_camera.toMatrix());
-    m_shd->setUniformValue(u_cameraToViewID, m_projection);
+    m_shd->setUniformValue("worldToCamera", m_camera.toMatrix());
+    m_shd->setUniformValue("cameraToView", m_projection);
+    m_shd->setUniformValue("modelToWorld", m_transform.toMatrix());
 
-    m_vao.bind();
-    m_shd->setUniformValue(u_modelToWorldID, m_transform.toMatrix());
+    QOpenGLTexture *texture = new QOpenGLTexture(QImage("test_files/uvtemplate.bmp").mirrored());
+    texture->bind();
+
     glDrawElements(GL_TRIANGLES, m_scene->indices().size(), GL_UNSIGNED_INT, (void *) 0);
 
-    m_vao.release();
-    m_shd->release();
+    texture->release();
+    delete texture;
 }
 
 void GLWidget::teardownGL() {
@@ -130,6 +135,21 @@ void GLWidget::printContextInformation() {
 }
 
 void GLWidget::update() {
+    Input::update();
+
+    if (Input::buttonPressed(Qt::LeftButton)) {
+        static const float transSpeed = 0.3f;
+        static const float rotSpeed = 0.3f;
+
+        m_camera.rotate(-rotSpeed * Input::mouseDelta().x(), Camera3D::LocalUp);
+        m_camera.rotate(-rotSpeed * Input::mouseDelta().y(), m_camera.right());
+
+        QVector3D translation;
+        m_camera.translate(transSpeed * translation);
+    }
+
+    m_transform.rotate(1.0f, QVector3D(0.4f, 0.3f, 0.3f));
+
     QOpenGLWidget::update();
 }
 

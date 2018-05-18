@@ -1,1 +1,2 @@
 add_subdirectory(OpenGLWindow)
+add_subdirectory(QtGLTextures)

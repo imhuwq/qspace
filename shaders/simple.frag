@@ -1,8 +1,9 @@
 #version 330
 
-in vec4 vColor;
-out vec4 fColor;
+in vec2 fUV;
+
+uniform sampler2D texture;
 
 void main() {
-    fColor = vColor;
+    gl_FragColor = texture2D(texture,  fUV.st);
 }

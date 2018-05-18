@@ -103,10 +103,9 @@ QSharedPointer<Mesh> ModelLoader::processMesh(aiMesh *ai_mesh) {
 
         // uv
         if (ai_mesh->HasTextureCoords(0)) {
-            aiVector3D *textVec = ai_mesh->mTextureCoords[0];
-            m_scene->addToUVs(textVec->x);
-            m_scene->addToUVs(textVec->y);
-            m_scene->addToUVs(textVec->z);
+            aiVector3D &textVec = ai_mesh->mTextureCoords[0][index];
+            m_scene->addToUVs(textVec.x);
+            m_scene->addToUVs(textVec.y);
         }
     }
 
