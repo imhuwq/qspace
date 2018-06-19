@@ -75,6 +75,16 @@ QSharedPointer<Material> ModelLoader::processMaterial(aiMaterial *ai_material) {
         material->setDiffuse(QVector3D(dif.r, dif.g, dif.b));
         material->setSpecular(QVector3D(spc.r, spc.g, spc.b));
         shine == 0.0 ? material->setShininess(30.0f) : material->setShininess(shine);
+
+        if (ai_material->GetTextureCount(aiTextureType_DIFFUSE) > 0) {
+            aiString texturePath;
+            if (ai_material->GetTexture(aiTextureType_DIFFUSE, 0, &texturePath) == AI_SUCCESS) {
+                QString textPath = texturePath.data;
+                material->setDiffusePath(textPath);
+            } else {
+                qDebug() << "Failed to get texture path for material";
+            }
+        }
     }
 
     return material;

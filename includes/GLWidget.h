@@ -10,6 +10,8 @@
 #include <QOpenGLVertexArrayObject>
 #include <QOpenGLShaderProgram>
 #include <QKeyEvent>
+#include <QImage>
+#include <QOpenGLTexture>
 
 #include "Vertex.h"
 #include "Transform3D.h"
@@ -35,6 +37,8 @@ protected:
 
     void createShaders();
 
+    void createTextures();
+
     void initializeGL() override;
 
     void resizeGL(int w, int h) override;
@@ -43,11 +47,6 @@ protected:
 
     void teardownGL();
 
-protected slots:
-
-    void update();
-
-protected:
     void keyPressEvent(QKeyEvent *event);
 
     void keyReleaseEvent(QKeyEvent *event);
@@ -56,13 +55,20 @@ protected:
 
     void mouseReleaseEvent(QMouseEvent *event);
 
+protected slots:
+
+    void update();
+
 private:
     bool m_glInitialized;
+
     QOpenGLBuffer m_vbo;
     QOpenGLBuffer m_tbo;
     QOpenGLBuffer m_ibo;
     QOpenGLVertexArrayObject m_vao;
     QOpenGLShaderProgram *m_shd;
+    QMap<QString, QSharedPointer<QOpenGLTexture>> m_textures;
+
     Camera3D m_camera;
     QMatrix4x4 m_projection;
     Transform3D m_transform;
@@ -71,6 +77,10 @@ private:
     QSharedPointer<Scene> m_scene;
 
     void printContextInformation();
+
+    void createTexturesForNode(const QSharedPointer<Node> &node);
+
+    void drawNode(QSharedPointer<Node> node, QMatrix4x4 objectMatrix);
 };
 
 #endif //QSPACE_GLWIDGET_H

@@ -1,6 +1,7 @@
 #ifndef QSPACE_MATERIAL_H
 #define QSPACE_MATERIAL_H
 
+#include <QMap>
 #include <QString>
 #include <QVector3D>
 #include <QVector4D>
@@ -27,12 +28,20 @@ public:
 
     void setShininess(float shininess) { m_shininess = shininess; }
 
+    QString diffusePath() { return m_diffusePath; }
+
+    void setDiffusePath(const QString &path) { m_diffusePath = path; }
+
+    QMap<QString, QString> texturePaths();
+
 private:
     QString m_name;
     QVector3D m_ambient;
     QVector3D m_diffuse;
     QVector3D m_specular;
     float m_shininess;
+
+    QString m_diffusePath;
 };
 
 #endif //QSPACE_MATERIAL_H

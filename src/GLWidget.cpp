@@ -1,6 +1,7 @@
 #include "GLWidget.h"
-#include <QImage>
-#include <QOpenGLTexture>
+#include <QPair>
+#include <iostream>
+using namespace std;
 
 GLWidget::GLWidget() : m_glInitialized(false), m_shd(nullptr), m_vbo(QOpenGLBuffer::VertexBuffer), m_ibo(QOpenGLBuffer::IndexBuffer) {
 
@@ -60,6 +61,27 @@ void GLWidget::createBuffers() {
 #undef CREATE_OR_RELEASE
 }
 
+void GLWidget::createTexturesForNode(const QSharedPointer<Node> &node) {
+    for (const auto &mesh:node->meshes()) {
+        const auto &material = mesh->material();
+        for (const auto &textureInfo:material->texturePaths().toStdMap()) {
+            QString key = textureInfo.first + "_" + textureInfo.second;
+            QSharedPointer<QOpenGLTexture> texture(new QOpenGLTexture(QImage(textureInfo.second).mirrored()));
+            m_textures[key] = texture;
+        }
+    }
+
+    for (const auto& childNode:node->nodes()) {
+        createTexturesForNode(childNode);
+    }
+}
+
+void GLWidget::createTextures() {
+    m_textures.clear();
+    QSharedPointer<Node> rootNode = m_scene->rootNode();
+    createTexturesForNode(rootNode);
+}
+
 void GLWidget::loadModelFile(QString filePath) {
     filePath = filePath.length() == 0 ? "test_files/cube.obj" : filePath;
 
@@ -74,6 +96,7 @@ void GLWidget::loadModelFile(QString filePath) {
 
     createShaders();
     createBuffers();
+    createTextures();
 }
 
 void GLWidget::initializeGL() {
@@ -94,20 +117,31 @@ void GLWidget::resizeGL(int w, int h) {
     m_projection.perspective(45.0f, w / float(h), 0.001f, 1000.0f);
 }
 
+void GLWidget::drawNode(QSharedPointer<Node> node, QMatrix4x4 objectMatrix) {
+    objectMatrix *= node->transformation();
+    m_shd->setUniformValue("modelToWorld", objectMatrix);
+
+    for (auto &mesh:node->meshes()) {
+        const auto &material = mesh->material();
+        for (const auto &textureInfo:material->texturePaths().toStdMap()) {
+            QString key = textureInfo.first + "_" + textureInfo.second;
+            m_textures[key]->bind();
+        }
+        glDrawElements(GL_TRIANGLES, mesh->indexCount(), GL_UNSIGNED_INT, (void *) (mesh->indexOffset() * sizeof(unsigned int)));
+    }
+
+    for (auto &childNode:node->nodes()) {
+        drawNode(childNode, objectMatrix);
+    }
+}
+
 void GLWidget::paintGL() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     m_shd->setUniformValue("worldToCamera", m_camera.toMatrix());
     m_shd->setUniformValue("cameraToView", m_projection);
-    m_shd->setUniformValue("modelToWorld", m_transform.toMatrix());
 
-    QOpenGLTexture *texture = new QOpenGLTexture(QImage("test_files/uvtemplate.bmp").mirrored());
-    texture->bind();
-
-    glDrawElements(GL_TRIANGLES, m_scene->indices().size(), GL_UNSIGNED_INT, (void *) 0);
-
-    texture->release();
-    delete texture;
+    drawNode(m_scene->rootNode(), m_transform.toMatrix());
 }
 
 void GLWidget::teardownGL() {

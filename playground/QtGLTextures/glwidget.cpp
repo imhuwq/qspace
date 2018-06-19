@@ -58,12 +58,12 @@ GLWidget::GLWidget(QWidget *parent)
         : QOpenGLWidget(parent), clearColor(Qt::black), xRot(0), yRot(0), zRot(0), program(0) {
     memset(textures, 0, sizeof(textures));
 
-    texturePaths[0] = QString("textures/side1.png");
-    texturePaths[1] = QString("textures/side2.png");
-    texturePaths[2] = QString("textures/side3.png");
-    texturePaths[3] = QString("textures/side4.png");
-    texturePaths[4] = QString("textures/side5.png");
-    texturePaths[5] = QString("textures/side6.png");
+    texturePaths[0] = QString("texturePaths/side1.png");
+    texturePaths[1] = QString("texturePaths/side2.png");
+    texturePaths[2] = QString("texturePaths/side3.png");
+    texturePaths[3] = QString("texturePaths/side4.png");
+    texturePaths[4] = QString("texturePaths/side5.png");
+    texturePaths[5] = QString("texturePaths/side6.png");
 }
 
 GLWidget::~GLWidget() {
