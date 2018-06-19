@@ -1,6 +1,7 @@
 #ifndef QSPACE_MODELLOADER_H
 #define QSPACE_MODELLOADER_H
 
+#include <QDir>
 #include <QString>
 #include <QVector>
 #include <QFileInfo>
@@ -21,6 +22,9 @@ public:
     bool Load(const QString &pathToFile, QSharedPointer<Scene> &scene);
 
 private:
+    QFileInfo m_modelFile;
+    QDir m_modelDir;
+
     QSharedPointer<Scene> m_scene;
 
     QSharedPointer<Material> processMaterial(aiMaterial *ai_material);

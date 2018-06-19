@@ -13,6 +13,8 @@ bool ModelLoader::checkFileFormatIsOk(const QString &filePath) {
 
 bool ModelLoader::Load(const QString &pathToFile, QSharedPointer<Scene> &scene) {
     if (!checkFileFormatIsOk(pathToFile)) return false;
+    m_modelFile = QFileInfo(pathToFile);
+    m_modelDir = QDir(m_modelFile.absoluteDir());
     m_scene = scene;
 
     Assimp::Importer importer;
@@ -79,8 +81,12 @@ QSharedPointer<Material> ModelLoader::processMaterial(aiMaterial *ai_material) {
         if (ai_material->GetTextureCount(aiTextureType_DIFFUSE) > 0) {
             aiString texturePath;
             if (ai_material->GetTexture(aiTextureType_DIFFUSE, 0, &texturePath) == AI_SUCCESS) {
-                QString textPath = texturePath.data;
-                material->setDiffusePath(textPath);
+                QFileInfo textPath = QFileInfo(texturePath.data);
+                if (textPath.isRelative()) {
+                    material->setDiffusePath(m_modelDir.filePath(texturePath.data));
+                } else {
+                    material->setDiffusePath(textPath.absolutePath());
+                }
             } else {
                 qDebug() << "Failed to get texture path for material";
             }
