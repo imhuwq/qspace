@@ -32,34 +32,34 @@ void GLWidget::createShaders() {
 };
 
 void GLWidget::createBuffers() {
-#define CREATE_OR_RELEASE(x) if (m_glInitialized) (x).release();\
-                             else (x).create();
-
-    CREATE_OR_RELEASE(m_vao);
-    m_vao.bind();
-
-    CREATE_OR_RELEASE(m_vbo);
-    m_vbo.setUsagePattern(QOpenGLBuffer::StaticDraw);
-    m_vbo.bind();
-    m_vbo.allocate(m_scene->vertices().constData(), m_scene->vertices().size() * sizeof(float));
-    m_shd->enableAttributeArray(0);
-    m_shd->setAttributeBuffer(0, GL_FLOAT, 0, 3);
-    m_vbo.release();
-
-    CREATE_OR_RELEASE(m_tbo);
-    m_tbo.setUsagePattern(QOpenGLBuffer::StaticDraw);
-    m_tbo.bind();
-    m_tbo.allocate(m_scene->uvs().constData(), m_scene->uvs().size() * sizeof(float));
-    m_shd->enableAttributeArray(1);
-    m_shd->setAttributeBuffer(1, GL_FLOAT, 0, 2);
-    m_tbo.release();
-
-    CREATE_OR_RELEASE(m_ibo);
-    m_ibo.setUsagePattern(QOpenGLBuffer::StaticDraw);
-    m_ibo.bind();
-    m_ibo.allocate(m_scene->indices().constData(), m_scene->indices().size() * sizeof(unsigned int));
-
-#undef CREATE_OR_RELEASE
+//#define CREATE_OR_RELEASE(x) if (m_glInitialized) (x).release();\
+//                             else (x).create();
+//
+//    CREATE_OR_RELEASE(m_vao);
+//    m_vao.bind();
+//
+//    CREATE_OR_RELEASE(m_vbo);
+//    m_vbo.setUsagePattern(QOpenGLBuffer::StaticDraw);
+//    m_vbo.bind();
+//    m_vbo.allocate(m_scene->vertices().constData(), m_scene->vertices().size() * sizeof(float));
+//    m_shd->enableAttributeArray(0);
+//    m_shd->setAttributeBuffer(0, GL_FLOAT, 0, 3);
+//    m_vbo.release();
+//
+//    CREATE_OR_RELEASE(m_tbo);
+//    m_tbo.setUsagePattern(QOpenGLBuffer::StaticDraw);
+//    m_tbo.bind();
+//    m_tbo.allocate(m_scene->uvs().constData(), m_scene->uvs().size() * sizeof(float));
+//    m_shd->enableAttributeArray(1);
+//    m_shd->setAttributeBuffer(1, GL_FLOAT, 0, 2);
+//    m_tbo.release();
+//
+//    CREATE_OR_RELEASE(m_ibo);
+//    m_ibo.setUsagePattern(QOpenGLBuffer::StaticDraw);
+//    m_ibo.bind();
+//    m_ibo.allocate(m_scene->indices().constData(), m_scene->indices().size() * sizeof(unsigned int));
+//
+//#undef CREATE_OR_RELEASE
 }
 
 void GLWidget::createTexturesForNode(const QSharedPointer<Node> &node) {
@@ -68,13 +68,13 @@ void GLWidget::createTexturesForNode(const QSharedPointer<Node> &node) {
 //        for (const auto &textureInfo:material->texturePaths().toStdMap()) {
 //            QString key = textureInfo.first + "_" + textureInfo.second;
 //            QSharedPointer<QOpenGLTexture> texture(new QOpenGLTexture(QImage(textureInfo.second).mirrored()));
-//            m_textures[key] = texture;
+//            m_texture_files[key] = texture;
 //        }
 //    }
-
-    for (const auto& childNode:node->nodes()) {
-        createTexturesForNode(childNode);
-    }
+//
+//    for (const auto& childNode:node->nodes()) {
+//        createTexturesForNode(childNode);
+//    }
 }
 
 void GLWidget::createTextures() {
@@ -86,18 +86,18 @@ void GLWidget::createTextures() {
 void GLWidget::loadModelFile(QString filePath) {
     filePath = filePath.length() == 0 ? "test_files/ball.fbx" : filePath;
 
-    if (!m_loader->checkFileFormatIsOk(filePath)) {
+    if (!m_loader->checkFileFormatIsSupported(filePath)) {
         qDebug() << "Unsupported file format: " << filePath << "\n";
         return;
     }
 
     m_scene = QSharedPointer<Scene>(new Scene);
     m_loader = QSharedPointer<ModelLoader>(new ModelLoader);
-    if (!m_loader->Load(filePath, m_scene)) qDebug() << "Failed to load file: " << filePath << "\n";
+    if (!m_loader->load(filePath, m_scene)) qDebug() << "Failed to load file: " << filePath << "\n";
 
-    createShaders();
-    createBuffers();
-    createTextures();
+//    createShaders();
+//    createBuffers();
+//    createTextures();
 }
 
 void GLWidget::initializeGL() {
@@ -119,21 +119,21 @@ void GLWidget::resizeGL(int w, int h) {
 }
 
 void GLWidget::drawNode(QSharedPointer<Node> node, QMatrix4x4 objectMatrix) {
-    objectMatrix *= node->transformation();
-    m_shd->setUniformValue("modelToWorld", objectMatrix);
-
-    for (auto &mesh:node->meshes()) {
+//    objectMatrix *= node->transformation();
+//    m_shd->setUniformValue("modelToWorld", objectMatrix);
+//
+//    for (auto &mesh:node->meshes()) {
 //        const auto &material = mesh->material();
 //        for (const auto &textureInfo:material->texturePaths().toStdMap()) {
 //            QString key = textureInfo.first + "_" + textureInfo.second;
-//            m_textures[key]->bind();
+//            m_texture_files[key]->bind();
 //        }
-        glDrawElements(GL_TRIANGLES, mesh->indexCount(), GL_UNSIGNED_INT, (void *) (mesh->indexOffset() * sizeof(unsigned int)));
-    }
-
-    for (auto &childNode:node->nodes()) {
-        drawNode(childNode, objectMatrix);
-    }
+//        glDrawElements(GL_TRIANGLES, mesh->indexCount(), GL_UNSIGNED_INT, (void *) (mesh->indexOffset() * sizeof(unsigned int)));
+//    }
+//
+//    for (auto &childNode:node->nodes()) {
+//        drawNode(childNode, objectMatrix);
+//    }
 }
 
 void GLWidget::paintGL() {
