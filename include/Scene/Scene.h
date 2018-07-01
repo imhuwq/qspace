@@ -13,7 +13,6 @@
 class ModelLoader;
 
 class Scene {
-    friend ModelLoader;
 public:
     Scene() = default;
 
@@ -35,7 +34,6 @@ public:
 
     unsigned int getIndicesSize() { return m_vertexBuffer->getIndicesSize(); }
 
-protected:
     QSharedPointer<VertexBuffer> &getVertexBufferRef() { return m_vertexBuffer; }
 
 private:

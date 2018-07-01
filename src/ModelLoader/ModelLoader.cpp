@@ -270,17 +270,15 @@ void ModelLoader::prepareFbxMesh(FbxMesh *&fbxMesh) {
     fbxMesh->GenerateNormals(false, true, false);
 }
 
-void
-ModelLoader::collectVertexPosition(FbxMesh *fbxMesh, SingleVertexPtr &singleVertex,
-                                   QSharedPointer<VertexContext> &vertexContext) {
+void ModelLoader::collectVertexPosition(FbxMesh *fbxMesh, SingleVertexPtr &singleVertex,
+                                        QSharedPointer<VertexContext> &vertexContext) {
     FbxVector4 *controlPoints = fbxMesh->GetControlPoints();
     FbxVector4 controlPoint = controlPoints[vertexContext->m_controlPointIndex2Mesh];
     singleVertex->m_positions = {ADAPT_FBXVECTOR4_TO_QVECTOR_DOUBLE(controlPoint)};
 }
 
-void
-ModelLoader::collectVertexNormal(FbxMesh *fbxMesh, SingleVertexPtr &singleVertex,
-                                 QSharedPointer<VertexContext> &vertexContext) {
+void ModelLoader::collectVertexNormal(FbxMesh *fbxMesh, SingleVertexPtr &singleVertex,
+                                      QSharedPointer<VertexContext> &vertexContext) {
     for (int normalIndex = 0; normalIndex < 1; normalIndex++) {
         FbxVector4 normal;
         bool normalFound = false;
@@ -310,9 +308,8 @@ ModelLoader::collectVertexNormal(FbxMesh *fbxMesh, SingleVertexPtr &singleVertex
     }
 }
 
-void
-ModelLoader::collectVertexTexCoords(FbxMesh *fbxMesh, SingleVertexPtr &singleVertex,
-                                    QSharedPointer<VertexContext> &vertexContext) {
+void ModelLoader::collectVertexTexCoords(FbxMesh *fbxMesh, SingleVertexPtr &singleVertex,
+                                         QSharedPointer<VertexContext> &vertexContext) {
     for (int texCoordIndex = 0; texCoordIndex < 2; texCoordIndex++) {
         FbxVector2 uv;
         bool uvFound = false;
@@ -421,7 +418,6 @@ void ModelLoader::collectMeshData(FbxMesh *fbxMesh, QSharedPointer<VertexContext
     //}
 }
 
-
 void ModelLoader::processMeshesForNode(FbxNode *fbxNode, QSharedPointer<Node> &node) {
     if (!isMeshNode(fbxNode)) return;
     auto *fbxMesh = (FbxMesh *) fbxNode->GetNodeAttribute();
@@ -476,4 +472,5 @@ void ModelLoader::processNodes() {
     QSharedPointer<Node> rootNode(new Node(rootFbxNode->GetName()));
     processNode(rootFbxNode, rootNode);
     m_scene->setRootNode(rootNode);
+    qDebug() << m_scene->getVertexBuffer()->getIndicesSize() ;
 }

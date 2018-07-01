@@ -15,7 +15,6 @@
 
 
 class ModelLoader {
-    friend Scene;
 public:
     QVector<QString> fileFormat() { return {"fbx",}; }
 
