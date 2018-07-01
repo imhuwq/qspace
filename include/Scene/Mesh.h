@@ -7,9 +7,14 @@
 
 class Mesh {
 public:
-    const QString &name() const { return m_name; }
+    void extendTmpIndices(const QVector<unsigned int> &indices) {
+        m_tmpIndices.append(indices);
+        m_indexCount += indices.size();
+    }
 
-    void setName(const QString &name) { m_name = name; }
+    const QVector<unsigned int> &tmpIndices() { return m_tmpIndices; }
+
+    void clearTmpIndices() { m_tmpIndices.clear(); }
 
     unsigned int indexCount() const { return m_indexCount; }
 
@@ -20,8 +25,7 @@ public:
     void setIndexOffset(unsigned int index) { m_indexOffset = index; }
 
 private:
-    QString m_name;
-    QString m_materialName;
+    QVector<unsigned int> m_tmpIndices;  // 合并到 node 的 vertexBuffer 后成为空的
     unsigned int m_indexCount;
     unsigned int m_indexOffset;
 };

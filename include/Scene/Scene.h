@@ -10,7 +10,10 @@
 #include "TextureFile.h"
 #include "VertexBuffer.h"
 
+class ModelLoader;
+
 class Scene {
+    friend ModelLoader;
 public:
     Scene() = default;
 
@@ -18,17 +21,22 @@ public:
 
     QSharedPointer<Material> getMaterial(const QString &material_name) { return m_materials[material_name]; }
 
-    void addTextureFile(QSharedPointer<TextureFile> texture) { m_texture_files[texture->path()] = texture; }
+    void addTextureFile(QSharedPointer<TextureFile> &texture) { m_texture_files[texture->path()] = texture; }
 
     QSharedPointer<TextureFile> getTextureFile(const QString &texturePath) { return m_texture_files[texturePath]; }
 
-    QSharedPointer<VertexBuffer> getVertexBuffer() const { return m_vertexBuffer; }
+    const QSharedPointer<VertexBuffer> getVertexBuffer() const { return m_vertexBuffer; }
 
-    void setVertexBuffer(QSharedPointer<VertexBuffer> vertexBuffer) { m_vertexBuffer = vertexBuffer; }
+    void setVertexBuffer(QSharedPointer<VertexBuffer> &vertexBuffer) { m_vertexBuffer = vertexBuffer; }
 
     const QSharedPointer<Node> rootNode() const { return m_rootNode; }
 
     void setRootNode(QSharedPointer<Node> &rootNode) { m_rootNode = rootNode; }
+
+    unsigned int getIndicesSize() { return m_vertexBuffer->getIndicesSize(); }
+
+protected:
+    QSharedPointer<VertexBuffer> &getVertexBufferRef() { return m_vertexBuffer; }
 
 private:
     QMap<QString, QSharedPointer<Material>> m_materials;  // material_name -> material_obj

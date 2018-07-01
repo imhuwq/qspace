@@ -1,9 +1,10 @@
 #ifndef QSPACE_NODE_H
 #define QSPACE_NODE_H
 
+#include <QMap>
 #include <QString>
-#include <QMatrix4x4>
 #include <QVector>
+#include <QMatrix4x4>
 
 #include "Mesh.h"
 
@@ -19,15 +20,13 @@ public:
 
     void setTransformation(const QMatrix4x4 &transformation) { m_transformation = transformation; }
 
-    const QVector<QSharedPointer<Mesh> > &meshes() const { return m_meshes; }
+    const QVector<QSharedPointer<Mesh> > &meshes() const { return m_meshes.values().toVector(); }
 
-    const QSharedPointer<Mesh> getMeshAt(unsigned int index) const { return m_meshes[index]; }
+    bool hasMesh(const QString &materialName) { return m_meshes.contains(materialName); }
 
-    QSharedPointer<Mesh> getMeshAt(unsigned int index) { return m_meshes[index]; }
+    QSharedPointer<Mesh> getMesh(const QString &materialName) { return m_meshes[materialName]; }
 
-    void resizeMeshes(unsigned int size) { m_meshes.resize(size); }
-
-    void setMeshAt(QSharedPointer<Mesh> mesh, unsigned int index) { m_meshes[index] = mesh; }
+    void setMesh(QSharedPointer<Mesh> mesh, const QString &materialName) { m_meshes[materialName] = mesh; }
 
     const QVector<QSharedPointer<Node>> &nodes() const { return m_nodes; }
 
@@ -38,7 +37,7 @@ public:
 private:
     QString m_name;
     QMatrix4x4 m_transformation;
-    QVector<QSharedPointer<Mesh>> m_meshes;
+    QMap<QString, QSharedPointer<Mesh>> m_meshes;  // material_name --> mesh
     QVector<QSharedPointer<Node>> m_nodes;
 };
 

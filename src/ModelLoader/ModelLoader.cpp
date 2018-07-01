@@ -19,9 +19,14 @@ inline bool operator==(const ModelLoader::SingleVertex &lhs, const ModelLoader::
            lhs.m_colors == rhs.m_colors;
 }
 
-inline bool operator!=(const ModelLoader::SingleVertex &lhs, const ModelLoader::SingleVertex &rhs) { return !(lhs == rhs); }
+inline bool operator!=(const ModelLoader::SingleVertex &lhs, const ModelLoader::SingleVertex &rhs) {
+    return !(lhs == rhs);
+}
 
-bool ModelLoader::VertexTable::insert(SingleVertexPtr &singleVertex, VertexContextPtr &vertexContext) {
+bool ModelLoader::VertexTable::insert(SingleVertexPtr &singleVertex, QSharedPointer<VertexContext> &vertexContext) {
+    bool insertSuccess = false;
+    bool foundEqual = false;
+
     // 先根据 gControlPointIndexInMesh 找到当前 control point 对应的 vertex vector
     vector<SingleVertexPtr> &vertices = mTable[vertexContext->m_controlPointIndex2Mesh];
 
@@ -30,24 +35,37 @@ bool ModelLoader::VertexTable::insert(SingleVertexPtr &singleVertex, VertexConte
         vertexContext->m_vertexIndex2Mesh = vertexContext->m_controlPointIndex2Mesh;
         singleVertex->m_index = vertexContext->m_vertexIndex2Mesh;
         vertices.push_back(singleVertex);
-        return true;
-    }
+        insertSuccess = true;
+    } else {
+        // 如果 vertex vector 不是空的, 把 vertex 和 vertex vector 里面的每一个 vertex 逐个比较, 看看是否有相等的.
+        // 如果有相等的, 说明这个 vertex 已经不是第一次插入了, 那它的 index 就是之前的 index
+        for (SingleVertexPtr &vertex: vertices) {
+            if (*vertex == *singleVertex) {
+                vertexContext->m_vertexIndex2Mesh = vertex->m_index;
+                foundEqual = true;
+                break;
+            }
+        }
 
-    // 如果 vertex vector 不是空的, 把 vertex 和 vertex vector 里面的每一个 vertex 逐个比较, 看看是否有相等的.
-    // 如果有相等的, 说明这个 vertex 已经不是第一次插入了, 那它的 index 就是之前的 index
-    for (SingleVertexPtr &vertex: vertices) {
-        if (*vertex == *singleVertex) {
-            vertexContext->m_vertexIndex2Mesh = vertex->m_index;
-            return false;
+        // 如果 vertex vector 不是空的, 并且里面没有相等的, 说明这个 vertex 是第一次插入
+        // 它的 index 是 mSize, 也就是除了 control point 以外新插入的 vertex 的个数
+        if (!foundEqual) {
+            vertexContext->m_vertexIndex2Mesh = m_size++;
+            singleVertex->m_index = vertexContext->m_vertexIndex2Mesh;
+            vertices.push_back(singleVertex);
+            insertSuccess = true;
         }
     }
 
-    // 如果 vertex vector 不是空的, 并且里面没有相等的, 说明这个 vertex 是第一次插入
-    // 它的 index 是 mSize, 也就是除了 control point 以外新插入的 vertex 的个数
-    vertexContext->m_vertexIndex2Mesh = m_size++;
-    singleVertex->m_index = vertexContext->m_vertexIndex2Mesh;
-    vertices.push_back(singleVertex);
-    return true;
+    if (insertSuccess) {
+        vertexContext->m_vertexBuffer->extendPositions(singleVertex->m_positions);
+        vertexContext->m_vertexBuffer->extendNormals(singleVertex->m_normals);
+        vertexContext->m_vertexBuffer->extendUV0s(singleVertex->m_uv0s);
+        vertexContext->m_vertexBuffer->extendUV1s(singleVertex->m_uv1s);
+        vertexContext->m_vertexBuffer->extendColors(singleVertex->m_colors);
+    }
+
+    return insertSuccess;
 }
 
 bool ModelLoader::checkFileFormatIsSupported(const QString &filePath) {
@@ -81,7 +99,8 @@ bool ModelLoader::load(const QString &pathToFile, QSharedPointer<Scene> &scene) 
 
 bool ModelLoader::importModel() {
     FbxImporter *fbxImporter = FbxImporter::Create(m_fbxManager, "");
-    bool importStatus = fbxImporter->Initialize(m_modelFile.filePath().toStdString().c_str(), -1, m_fbxManager->GetIOSettings());
+    bool importStatus = fbxImporter->Initialize(m_modelFile.filePath().toStdString().c_str(), -1,
+                                                m_fbxManager->GetIOSettings());
     fbxImporter->Import(m_fbxScene);
     fbxImporter->Destroy();
     return importStatus;
@@ -144,7 +163,8 @@ void ModelLoader::collectMaterialData(FbxSurfaceMaterial *fbxMaterial, QSharedPo
     }
 }
 
-void ModelLoader::collectTextureData(FbxTexture *fbxTexture, TextureContextPtr textureContext, QSharedPointer<Material> &material) {
+void ModelLoader::collectTextureData(FbxTexture *fbxTexture, TextureContextPtr textureContext,
+                                     QSharedPointer<Material> &material) {
     QString textureChannelName = QString(textureContext->m_textureChannel);
     textureChannelName = textureChannelName + "_" + QString::number(textureContext->m_layerIndex);
     QSharedPointer<TextureData> textureData(new TextureData(textureChannelName));
@@ -170,14 +190,16 @@ void ModelLoader::collectTextureData(FbxTexture *fbxTexture, TextureContextPtr t
     textureData->setCroppingTop(fbxTexture->GetCroppingTop());
     textureData->setCroppingBottom(fbxTexture->GetCroppingBottom());
 
-    if (textureContext->m_blendMode >= 0) { textureData->setBlendMode(TextureData::BlendMode(textureContext->m_blendMode)); }
-    else textureData->setBlendMode(TextureData::BlendMode::None);
+    if (textureContext->m_blendMode >= 0) {
+        textureData->setBlendMode(TextureData::BlendMode(textureContext->m_blendMode));
+    } else textureData->setBlendMode(TextureData::BlendMode::None);
 
     material->addTexture(textureData);
 }
 
 void ModelLoader::collectTextureData(FbxSurfaceMaterial *fbxMaterial, QSharedPointer<Material> &material) {
-    for (int textureChannelIndex = 0; textureChannelIndex < FbxLayerElement::sTypeNonTextureCount; textureChannelIndex++) {
+    for (int textureChannelIndex = 0;
+         textureChannelIndex < FbxLayerElement::sTypeNonTextureCount; textureChannelIndex++) {
         const char *textureChannelName = FbxLayerElement::sTextureChannelNames[textureChannelIndex];
         FbxProperty fbxProperty = fbxMaterial->FindProperty(textureChannelName);
         if (!fbxProperty.IsValid()) continue;
@@ -248,13 +270,17 @@ void ModelLoader::prepareFbxMesh(FbxMesh *&fbxMesh) {
     fbxMesh->GenerateNormals(false, true, false);
 }
 
-void ModelLoader::collectVertexPosition(FbxMesh *fbxMesh, SingleVertexPtr &singleVertex, VertexContextPtr &vertexContext) {
+void
+ModelLoader::collectVertexPosition(FbxMesh *fbxMesh, SingleVertexPtr &singleVertex,
+                                   QSharedPointer<VertexContext> &vertexContext) {
     FbxVector4 *controlPoints = fbxMesh->GetControlPoints();
     FbxVector4 controlPoint = controlPoints[vertexContext->m_controlPointIndex2Mesh];
     singleVertex->m_positions = {ADAPT_FBXVECTOR4_TO_QVECTOR_DOUBLE(controlPoint)};
 }
 
-void ModelLoader::collectVertexNormal(FbxMesh *fbxMesh, SingleVertexPtr &singleVertex, VertexContextPtr &vertexContext) {
+void
+ModelLoader::collectVertexNormal(FbxMesh *fbxMesh, SingleVertexPtr &singleVertex,
+                                 QSharedPointer<VertexContext> &vertexContext) {
     for (int normalIndex = 0; normalIndex < 1; normalIndex++) {
         FbxVector4 normal;
         bool normalFound = false;
@@ -284,7 +310,9 @@ void ModelLoader::collectVertexNormal(FbxMesh *fbxMesh, SingleVertexPtr &singleV
     }
 }
 
-void ModelLoader::collectVertexTexCoords(FbxMesh *fbxMesh, SingleVertexPtr &singleVertex, VertexContextPtr &vertexContext) {
+void
+ModelLoader::collectVertexTexCoords(FbxMesh *fbxMesh, SingleVertexPtr &singleVertex,
+                                    QSharedPointer<VertexContext> &vertexContext) {
     for (int texCoordIndex = 0; texCoordIndex < 2; texCoordIndex++) {
         FbxVector2 uv;
         bool uvFound = false;
@@ -295,7 +323,8 @@ void ModelLoader::collectVertexTexCoords(FbxMesh *fbxMesh, SingleVertexPtr &sing
         FbxGeometryElement::EMappingMode fMapMode = fbxUV->GetMappingMode();
         int identifier;
         if (fMapMode == FbxGeometryElement::eByPolygonVertex)
-            identifier = fbxMesh->GetTextureUVIndex(vertexContext->m_polygonIndex2Mesh, vertexContext->m_controlPointIndex2Polygon);
+            identifier = fbxMesh->GetTextureUVIndex(vertexContext->m_polygonIndex2Mesh,
+                                                    vertexContext->m_controlPointIndex2Polygon);
         else if (fMapMode == FbxGeometryElement::eByControlPoint) identifier = vertexContext->m_controlPointIndex2Mesh;
         else continue;
 
@@ -317,7 +346,8 @@ void ModelLoader::collectVertexTexCoords(FbxMesh *fbxMesh, SingleVertexPtr &sing
     }
 }
 
-void ModelLoader::collectVertexColor(FbxMesh *fbxMesh, SingleVertexPtr &singleVertex, VertexContextPtr &vertexContext) {
+void ModelLoader::collectVertexColor(FbxMesh *fbxMesh, SingleVertexPtr &singleVertex,
+                                     QSharedPointer<VertexContext> &vertexContext) {
     for (int colorIndex = 0; colorIndex < 1; colorIndex++) {
         FbxColor color;
         bool colorFound = false;
@@ -342,32 +372,29 @@ void ModelLoader::collectVertexColor(FbxMesh *fbxMesh, SingleVertexPtr &singleVe
         }
 
         if (colorFound) {
-            singleVertex->m_colors = {(int) color.mRed * 255, (int) color.mGreen * 255, (int) color.mBlue * 255, (int) color.mAlpha * 255};
+            singleVertex->m_colors = {(int) color.mRed * 255, (int) color.mGreen * 255, (int) color.mBlue * 255,
+                                      (int) color.mAlpha * 255};
         }
     }
 }
 
-void ModelLoader::collectVertexData(FbxMesh *fbxMesh, VertexTable &vertexTable, VertexContextPtr &vertexContext) {
+void ModelLoader::collectVertexData(FbxMesh *fbxMesh, VertexTable &vertexTable,
+                                    QSharedPointer<VertexContext> &vertexContext) {
     SingleVertexPtr singleVertex(new SingleVertex());
     collectVertexPosition(fbxMesh, singleVertex, vertexContext);
     collectVertexNormal(fbxMesh, singleVertex, vertexContext);
     collectVertexTexCoords(fbxMesh, singleVertex, vertexContext);
     collectVertexColor(fbxMesh, singleVertex, vertexContext);
 
-    if (vertexTable.insert(singleVertex, vertexContext)) {
-        vertexContext->m_vertexBuffer->extendPositions(singleVertex->m_positions);
-        vertexContext->m_vertexBuffer->extendNormals(singleVertex->m_normals);
-        vertexContext->m_vertexBuffer->extendUV0s(singleVertex->m_uv0s);
-        vertexContext->m_vertexBuffer->extendUV1s(singleVertex->m_uv1s);
-        vertexContext->m_vertexBuffer->extendColors(singleVertex->m_colors);
-    }
+    vertexTable.insert(singleVertex, vertexContext);
 }
 
-void ModelLoader::collectMeshData(FbxMesh* fbxMesh, VertexContextPtr& vertexContext){
+void ModelLoader::collectMeshData(FbxMesh *fbxMesh, QSharedPointer<VertexContext> &vertexContext,
+                                  QSharedPointer<Node> &node) {
     int materialCount = fbxMesh->GetElementMaterialCount();
 
+    QString materialName = "default";
     if (materialCount > 0) {
-        QString materialName = "default";
         for (int materialIndex = 0; materialIndex < materialCount; materialIndex++) {
             FbxGeometryElementMaterial *fbxMaterialElement = fbxMesh->GetElementMaterial(materialIndex);
             // 根据当前 polygon(面) 的 index 找到其所属的 material, 以获取其名字
@@ -378,32 +405,22 @@ void ModelLoader::collectMeshData(FbxMesh* fbxMesh, VertexContextPtr& vertexCont
             }
 
             // 根据找到的 material 的名字找到(创建) 对应的 mesh instance
-            MeshModelPtr lMeshModel = pMeshInstances[materialName];
-            if (!lMeshModel) {
-                lMeshModel = make_shared<MeshModel>();
-                pMeshInstances[materialName] = lMeshModel;
+            QSharedPointer<Mesh> mesh(new Mesh());
+            if (node->hasMesh(materialName)) {
+                mesh = node->getMesh(materialName);
+            } else {
+                mesh->setIndexOffset(vertexContext->m_vertexBuffer->getIndicesSize());
+                node->setMesh(mesh, materialName);
             }
 
             // 把 vertex index 加入到 mesh model 里面去
-            for (int fVertexIndex:pVertexIndicesOfTriangle) {
-                lMeshModel->AddVerticesIndex(fVertexIndex);
-            }
-        }
-    } else {  // 有的 Mesh 它就是没有 Material, 详见 issue #1
-        string lMaterialName = cpp_utils::fix_utf8_string(fbxMesh->GetNode()->GetName());
-
-        // TODO 重构这里
-        MeshModelPtr lMeshModel = pMeshInstances[lMaterialName];
-        if (!lMeshModel) {
-            lMeshModel = make_shared<MeshModel>();
-            pMeshInstances[lMaterialName] = lMeshModel;
-        }
-
-        // 把 vertex index 加入到 mesh model 里面去
-        for (int fVertexIndex:pVertexIndicesOfTriangle) {
-            lMeshModel->AddVerticesIndex(fVertexIndex);
+            mesh->extendTmpIndices(vertexContext->m_vertexIndicesOfPolygon);
+            vertexContext->m_vertexIndicesOfPolygon.clear();
         }
     }
+    //else {
+    //TODO: 有的 Mesh 它就是没有 Material
+    //}
 }
 
 
@@ -414,18 +431,25 @@ void ModelLoader::processMeshesForNode(FbxNode *fbxNode, QSharedPointer<Node> &n
 
     int controlPointsCount = fbxMesh->GetControlPointsCount();
     VertexTable vertexTable(controlPointsCount);
-    VertexContextPtr vertexContext(new VertexContext());
+    QSharedPointer<VertexContext> vertexContext(new VertexContext());
+    vertexContext->m_vertexBuffer = m_scene->getVertexBufferRef();
     for (int polygonIndex = 0; polygonIndex < fbxMesh->GetPolygonCount(); polygonIndex++) {
         vertexContext->m_polygonIndex2Mesh = polygonIndex;
         vertexContext->m_vertexIndicesOfPolygon = {};
-        for (int controlPointIndex = 0; controlPointIndex < fbxMesh->GetPolygonSize(polygonIndex); controlPointIndex++) {
+        for (int controlPointIndex = 0;
+             controlPointIndex < fbxMesh->GetPolygonSize(polygonIndex); controlPointIndex++) {
             vertexContext->m_controlPointIndex2Polygon = controlPointIndex;
             vertexContext->m_controlPointIndex2Mesh = fbxMesh->GetPolygonVertex(polygonIndex, controlPointIndex);
             collectVertexData(fbxMesh, vertexTable, vertexContext);
             vertexContext->m_vertexIndicesOfPolygon.append(vertexContext->m_vertexIndex2Mesh);
             vertexContext->m_vertexId2Mesh++;
         }
-        collectMeshData(fbxMesh, vertexContext);
+        collectMeshData(fbxMesh, vertexContext, node);
+    }
+
+    for (const auto &mesh:node->meshes()) {
+        vertexContext->m_vertexBuffer->extendIndices(mesh->tmpIndices(), mesh->indexOffset());
+        mesh->clearTmpIndices();
     }
 }
 
