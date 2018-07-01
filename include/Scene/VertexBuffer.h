@@ -7,7 +7,8 @@ class VertexBuffer {
 public:
     const QVector<unsigned int> &indices() const { return m_indices; }
 
-    void extendIndices(const QVector<unsigned int> &indices, unsigned int offset) {
+    void extendIndices(const QVector<unsigned int> &indices) {
+        unsigned int offset = m_indices.size();
         for (const unsigned int index:indices) {
             m_indices.push_back(index + offset);
         }

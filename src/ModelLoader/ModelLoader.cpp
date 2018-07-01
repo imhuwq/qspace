@@ -409,13 +409,11 @@ void ModelLoader::collectMeshData(FbxMesh *fbxMesh, QSharedPointer<VertexContext
             if (node->hasMesh(materialName)) {
                 mesh = node->getMesh(materialName);
             } else {
-                mesh->setIndexOffset(vertexContext->m_vertexBuffer->getIndicesSize());
                 node->setMesh(mesh, materialName);
             }
 
             // 把 vertex index 加入到 mesh model 里面去
             mesh->extendTmpIndices(vertexContext->m_vertexIndicesOfPolygon);
-            vertexContext->m_vertexIndicesOfPolygon.clear();
         }
     }
     //else {
@@ -433,6 +431,7 @@ void ModelLoader::processMeshesForNode(FbxNode *fbxNode, QSharedPointer<Node> &n
     VertexTable vertexTable(controlPointsCount);
     QSharedPointer<VertexContext> vertexContext(new VertexContext());
     vertexContext->m_vertexBuffer = m_scene->getVertexBufferRef();
+
     for (int polygonIndex = 0; polygonIndex < fbxMesh->GetPolygonCount(); polygonIndex++) {
         vertexContext->m_polygonIndex2Mesh = polygonIndex;
         vertexContext->m_vertexIndicesOfPolygon = {};
@@ -445,10 +444,13 @@ void ModelLoader::processMeshesForNode(FbxNode *fbxNode, QSharedPointer<Node> &n
             vertexContext->m_vertexId2Mesh++;
         }
         collectMeshData(fbxMesh, vertexContext, node);
+        vertexContext->m_vertexIndicesOfPolygon.clear();
     }
 
     for (const auto &mesh:node->meshes()) {
-        vertexContext->m_vertexBuffer->extendIndices(mesh->tmpIndices(), mesh->indexOffset());
+        mesh->setIndexOffset(vertexContext->m_vertexBuffer->getIndicesSize());
+        vertexContext->m_vertexBuffer->extendIndices(mesh->tmpIndices());
+        mesh->setIndexCount(mesh->tmpIndices().size());
         mesh->clearTmpIndices();
     }
 }

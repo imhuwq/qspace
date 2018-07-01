@@ -7,10 +7,7 @@
 
 class Mesh {
 public:
-    void extendTmpIndices(const QVector<unsigned int> &indices) {
-        m_tmpIndices.append(indices);
-        m_indexCount += indices.size();
-    }
+    void extendTmpIndices(const QVector<unsigned int> &indices) { m_tmpIndices.append(indices); }
 
     const QVector<unsigned int> &tmpIndices() { return m_tmpIndices; }
 
