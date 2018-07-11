@@ -7,24 +7,24 @@
 
 class Mesh {
 public:
-    void extendTmpIndices(const QVector<unsigned int> &indices) { m_tmpIndices.append(indices); }
+    void extendTmpIndices(const QVector<int> &indices) { m_indices.append(indices); }
 
-    const QVector<unsigned int> &tmpIndices() { return m_tmpIndices; }
+    const QVector<int> &indices() { return m_indices; }
 
-    void clearTmpIndices() { m_tmpIndices.clear(); }
+    void clearIndices() { m_indices.clear(); }
 
-    unsigned int indexCount() const { return m_indexCount; }
+    int indexCount() const { return m_indexCount; }
 
-    void setIndexCount(unsigned int count) { m_indexCount = count; }
+    void setIndexCount(int count) { m_indexCount = count; }
 
-    unsigned int indexOffset() const { return m_indexOffset; }
+    int indexOffset() const { return m_indexOffset; }
 
-    void setIndexOffset(unsigned int index) { m_indexOffset = index; }
+    void setIndexOffset(int index) { m_indexOffset = index; }
 
 private:
-    QVector<unsigned int> m_tmpIndices;  // 合并到 node 的 vertexBuffer 后成为空的
-    unsigned int m_indexCount;
-    unsigned int m_indexOffset;
+    QVector<int> m_indices;  // 合并到 node 的 vertexBuffer 后成为空的
+    int m_indexCount;
+    int m_indexOffset;
 };
 
 #endif //QSPACE_MESH_H

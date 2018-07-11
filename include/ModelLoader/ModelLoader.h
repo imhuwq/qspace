@@ -42,7 +42,7 @@ protected:
         int m_controlPointIndex2Mesh = 0;     // control point 在 mesh 上的 index
         int m_vertexIndex2Mesh = 0;           // vertex 在 mesh 上的 index
         int m_vertexId2Mesh = 0;              // vertex 在 mesh 上的 id
-        QVector<unsigned int> m_vertexIndicesOfPolygon = {};    // 一个多边形的所有 vertex index
+        QVector<int> m_vertexIndicesOfPolygon = {};    // 一个多边形的所有 vertex index
         QSharedPointer<VertexBuffer> m_vertexBuffer;   // mesh 搜集到的 vertex buffer
     };
 

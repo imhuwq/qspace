@@ -4,7 +4,8 @@
 
 using namespace std;
 
-GLWidget::GLWidget() : m_glInitialized(false), m_shd(nullptr), m_vbo(QOpenGLBuffer::VertexBuffer), m_ibo(QOpenGLBuffer::IndexBuffer) {
+GLWidget::GLWidget() : m_glInitialized(false), m_shd(nullptr), m_vbo(QOpenGLBuffer::VertexBuffer),
+                       m_ibo(QOpenGLBuffer::IndexBuffer) {
 
     QSurfaceFormat format;
     format.setRenderableType(QSurfaceFormat::OpenGL);
@@ -32,34 +33,36 @@ void GLWidget::createShaders() {
 };
 
 void GLWidget::createBuffers() {
-//#define CREATE_OR_RELEASE(x) if (m_glInitialized) (x).release();\
-//                             else (x).create();
-//
-//    CREATE_OR_RELEASE(m_vao);
-//    m_vao.bind();
-//
-//    CREATE_OR_RELEASE(m_vbo);
-//    m_vbo.setUsagePattern(QOpenGLBuffer::StaticDraw);
-//    m_vbo.bind();
-//    m_vbo.allocate(m_scene->vertices().constData(), m_scene->vertices().size() * sizeof(float));
-//    m_shd->enableAttributeArray(0);
-//    m_shd->setAttributeBuffer(0, GL_FLOAT, 0, 3);
-//    m_vbo.release();
-//
-//    CREATE_OR_RELEASE(m_tbo);
-//    m_tbo.setUsagePattern(QOpenGLBuffer::StaticDraw);
-//    m_tbo.bind();
-//    m_tbo.allocate(m_scene->uvs().constData(), m_scene->uvs().size() * sizeof(float));
-//    m_shd->enableAttributeArray(1);
-//    m_shd->setAttributeBuffer(1, GL_FLOAT, 0, 2);
-//    m_tbo.release();
-//
-//    CREATE_OR_RELEASE(m_ibo);
-//    m_ibo.setUsagePattern(QOpenGLBuffer::StaticDraw);
-//    m_ibo.bind();
-//    m_ibo.allocate(m_scene->indices().constData(), m_scene->indices().size() * sizeof(unsigned int));
-//
-//#undef CREATE_OR_RELEASE
+#define CREATE_OR_RELEASE(x) if (m_glInitialized) (x).release();\
+                             else (x).create();
+
+    CREATE_OR_RELEASE(m_vao);
+    m_vao.bind();
+
+    QSharedPointer<const VertexBuffer> vertexBuffer = m_scene->getVertexBufferConst();
+
+    CREATE_OR_RELEASE(m_vbo);
+    m_vbo.setUsagePattern(QOpenGLBuffer::StaticDraw);
+    m_vbo.bind();
+    m_vbo.allocate(vertexBuffer->m_positions.constData(), vertexBuffer->m_positions.size() * sizeof(float));
+    m_shd->enableAttributeArray(0);
+    m_shd->setAttributeBuffer(0, GL_FLOAT, 0, 3);
+    m_vbo.release();
+
+    CREATE_OR_RELEASE(m_tbo);
+    m_tbo.setUsagePattern(QOpenGLBuffer::StaticDraw);
+    m_tbo.bind();
+    m_tbo.allocate(vertexBuffer->m_uv0s.constData(), vertexBuffer->m_uv0s.size() * sizeof(float));
+    m_shd->enableAttributeArray(1);
+    m_shd->setAttributeBuffer(1, GL_FLOAT, 0, 2);
+    m_tbo.release();
+
+    CREATE_OR_RELEASE(m_ibo);
+    m_ibo.setUsagePattern(QOpenGLBuffer::StaticDraw);
+    m_ibo.bind();
+    m_ibo.allocate(vertexBuffer->m_indices.constData(), vertexBuffer->m_indices.size() * sizeof(unsigned int));
+
+#undef CREATE_OR_RELEASE
 }
 
 void GLWidget::createTexturesForNode(const QSharedPointer<Node> &node) {
@@ -95,9 +98,9 @@ void GLWidget::loadModelFile(QString filePath) {
     m_loader = QSharedPointer<ModelLoader>(new ModelLoader);
     if (!m_loader->load(filePath, m_scene)) qDebug() << "Failed to load file: " << filePath << "\n";
 
-//    createShaders();
-//    createBuffers();
-//    createTextures();
+    createShaders();
+    createBuffers();
+    createTextures();
 }
 
 void GLWidget::initializeGL() {
@@ -119,21 +122,21 @@ void GLWidget::resizeGL(int w, int h) {
 }
 
 void GLWidget::drawNode(QSharedPointer<Node> node, QMatrix4x4 objectMatrix) {
-//    objectMatrix *= node->transformation();
-//    m_shd->setUniformValue("modelToWorld", objectMatrix);
-//
-//    for (auto &mesh:node->meshes()) {
+    objectMatrix *= node->transformation();
+    m_shd->setUniformValue("modelToWorld", objectMatrix);
+
+    for (auto &mesh:node->meshes()) {
 //        const auto &material = mesh->material();
 //        for (const auto &textureInfo:material->texturePaths().toStdMap()) {
 //            QString key = textureInfo.first + "_" + textureInfo.second;
 //            m_texture_files[key]->bind();
 //        }
-//        glDrawElements(GL_TRIANGLES, mesh->indexCount(), GL_UNSIGNED_INT, (void *) (mesh->indexOffset() * sizeof(unsigned int)));
-//    }
-//
-//    for (auto &childNode:node->nodes()) {
-//        drawNode(childNode, objectMatrix);
-//    }
+        glDrawElements(GL_TRIANGLES, mesh->indexCount(), GL_UNSIGNED_INT, (void *) (mesh->indexOffset() * sizeof(unsigned int)));
+    }
+
+    for (auto &childNode:node->nodes()) {
+        drawNode(childNode, objectMatrix);
+    }
 }
 
 void GLWidget::paintGL() {

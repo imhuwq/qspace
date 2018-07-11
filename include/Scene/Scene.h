@@ -13,8 +13,11 @@
 class ModelLoader;
 
 class Scene {
+    friend ModelLoader;
 public:
-    Scene() = default;
+    Scene() {
+        m_vertexBuffer = QSharedPointer<VertexBuffer>(new VertexBuffer());
+    }
 
     void addMaterial(const QSharedPointer<Material> &material) { m_materials[material->name()] = material; }
 
@@ -34,13 +37,15 @@ public:
 
     unsigned int getIndicesSize() { return m_vertexBuffer->getIndicesSize(); }
 
-    QSharedPointer<VertexBuffer> &getVertexBufferRef() { return m_vertexBuffer; }
+    QSharedPointer<const VertexBuffer> getVertexBufferConst() { return m_vertexBuffer; }
 
 private:
     QMap<QString, QSharedPointer<Material>> m_materials;  // material_name -> material_obj
     QMap<QString, QSharedPointer<TextureFile>> m_texture_files;    // texture_file_path -> texture_file_obj
     QSharedPointer<VertexBuffer> m_vertexBuffer;
     QSharedPointer<Node> m_rootNode;
+
+    QSharedPointer<VertexBuffer> getVertexBuffer() { return m_vertexBuffer; }
 };
 
 #endif //QSPACE_SCENE_H

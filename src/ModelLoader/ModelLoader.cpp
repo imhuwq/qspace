@@ -413,9 +413,18 @@ void ModelLoader::collectMeshData(FbxMesh *fbxMesh, QSharedPointer<VertexContext
             mesh->extendTmpIndices(vertexContext->m_vertexIndicesOfPolygon);
         }
     }
-    //else {
-    //TODO: 有的 Mesh 它就是没有 Material
-    //}
+    else {
+        // 根据找到的 material 的名字找到(创建) 对应的 mesh instance
+        QSharedPointer<Mesh> mesh(new Mesh());
+        if (node->hasMesh(materialName)) {
+            mesh = node->getMesh(materialName);
+        } else {
+            node->setMesh(mesh, materialName);
+        }
+
+        // 把 vertex index 加入到 mesh model 里面去
+        mesh->extendTmpIndices(vertexContext->m_vertexIndicesOfPolygon);
+    }
 }
 
 void ModelLoader::processMeshesForNode(FbxNode *fbxNode, QSharedPointer<Node> &node) {
@@ -426,7 +435,7 @@ void ModelLoader::processMeshesForNode(FbxNode *fbxNode, QSharedPointer<Node> &n
     int controlPointsCount = fbxMesh->GetControlPointsCount();
     VertexTable vertexTable(controlPointsCount);
     QSharedPointer<VertexContext> vertexContext(new VertexContext());
-    vertexContext->m_vertexBuffer = m_scene->getVertexBufferRef();
+    vertexContext->m_vertexBuffer = m_scene->getVertexBuffer();
 
     for (int polygonIndex = 0; polygonIndex < fbxMesh->GetPolygonCount(); polygonIndex++) {
         vertexContext->m_polygonIndex2Mesh = polygonIndex;
@@ -443,11 +452,13 @@ void ModelLoader::processMeshesForNode(FbxNode *fbxNode, QSharedPointer<Node> &n
         vertexContext->m_vertexIndicesOfPolygon.clear();
     }
 
-    for (const auto &mesh:node->meshes()) {
+    QVectorIterator<QSharedPointer<Mesh>> meshes(node->meshes());
+    while (meshes.hasNext()) {
+        auto mesh = meshes.next();
         mesh->setIndexOffset(vertexContext->m_vertexBuffer->getIndicesSize());
-        vertexContext->m_vertexBuffer->extendIndices(mesh->tmpIndices());
-        mesh->setIndexCount(mesh->tmpIndices().size());
-        mesh->clearTmpIndices();
+        vertexContext->m_vertexBuffer->extendIndices(mesh->indices());
+        mesh->setIndexCount(mesh->indices().size());
+        mesh->clearIndices();
     }
 }
 
@@ -472,5 +483,4 @@ void ModelLoader::processNodes() {
     QSharedPointer<Node> rootNode(new Node(rootFbxNode->GetName()));
     processNode(rootFbxNode, rootNode);
     m_scene->setRootNode(rootNode);
-    qDebug() << m_scene->getVertexBuffer()->getIndicesSize() ;
 }

@@ -20,7 +20,7 @@ public:
 
     void setTransformation(const QMatrix4x4 &transformation) { m_transformation = transformation; }
 
-    const QVector<QSharedPointer<Mesh> > &meshes() const { return m_meshes.values().toVector(); }
+    QVector<QSharedPointer<Mesh> > meshes() { return m_meshes.values().toVector(); }
 
     bool hasMesh(const QString &materialName) { return m_meshes.contains(materialName); }
 
@@ -28,7 +28,7 @@ public:
 
     void setMesh(QSharedPointer<Mesh> mesh, const QString &materialName) { m_meshes[materialName] = mesh; }
 
-    const QVector<QSharedPointer<Node>> &nodes() const { return m_nodes; }
+    QVector<QSharedPointer<Node>> &nodes() { return m_nodes; }
 
     void addNode(const QSharedPointer<Node> &node) { m_nodes.push_back(node); }
 
