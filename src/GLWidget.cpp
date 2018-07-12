@@ -62,6 +62,8 @@ void GLWidget::createBuffers() {
     m_ibo.bind();
     m_ibo.allocate(vertexBuffer->m_indices.constData(), vertexBuffer->m_indices.size() * sizeof(unsigned int));
 
+    m_vao.release();
+
 #undef CREATE_OR_RELEASE
 }
 
@@ -131,7 +133,10 @@ void GLWidget::drawNode(QSharedPointer<Node> node, QMatrix4x4 objectMatrix) {
 //            QString key = textureInfo.first + "_" + textureInfo.second;
 //            m_texture_files[key]->bind();
 //        }
-        glDrawElements(GL_TRIANGLES, mesh->indexCount(), GL_UNSIGNED_INT, (void *) (mesh->indexOffset() * sizeof(unsigned int)));
+        glDrawElements(GL_TRIANGLES,
+                       mesh->indexCount(),
+                       GL_UNSIGNED_INT,
+                       (void *) (mesh->indexOffset() * sizeof(unsigned int)));
     }
 
     for (auto &childNode:node->nodes()) {
@@ -141,11 +146,13 @@ void GLWidget::drawNode(QSharedPointer<Node> node, QMatrix4x4 objectMatrix) {
 
 void GLWidget::paintGL() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    m_vao.bind();
 
     m_shd->setUniformValue("worldToCamera", m_camera.toMatrix());
     m_shd->setUniformValue("cameraToView", m_projection);
 
     drawNode(m_scene->rootNode(), m_transform.toMatrix());
+    m_vao.release();
 }
 
 void GLWidget::teardownGL() {

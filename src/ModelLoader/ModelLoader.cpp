@@ -248,13 +248,10 @@ void ModelLoader::processMaterialsForNode(FbxNode *fbxNode) {
 
 void ModelLoader::processTRSforNode(FbxNode *fbxNode, QSharedPointer<Node> &node) {
     FbxAMatrix fbxNodeLocalTransform = fbxNode->EvaluateLocalTransform();
-    const FbxVector4 lT = fbxNode->GetGeometricTranslation(FbxNode::eSourcePivot);
-    const FbxVector4 lR = fbxNode->GetGeometricRotation(FbxNode::eSourcePivot);
-    const FbxVector4 lS = fbxNode->GetGeometricScaling(FbxNode::eSourcePivot);
 
-    FbxVector4 translation = fbxNodeLocalTransform.MultT(lT);
-    FbxVector4 rotation = fbxNodeLocalTransform.MultR(lR);
-    FbxVector4 scale = fbxNodeLocalTransform.MultS(lS);
+    FbxVector4 translation = fbxNodeLocalTransform.GetT();
+    FbxVector4 rotation = fbxNodeLocalTransform.GetR();
+    FbxVector4 scale = fbxNodeLocalTransform.GetS();
 
     QMatrix4x4 nodeTransformation;
     nodeTransformation.setToIdentity();

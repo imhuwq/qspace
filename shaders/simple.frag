@@ -1,9 +1,10 @@
 #version 330
 
-in vec2 fUV;
+in vec4 positionColor;
 out vec4 color;
-uniform sampler2D texture;
+//uniform sampler2D texture;
 
 void main() {
-    color = texture2D(texture,  fUV.st);
+//    color = texture2D(texture,  fUV.st);
+    color = positionColor;
 }

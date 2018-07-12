@@ -62,6 +62,7 @@ private:
     bool m_glInitialized;
 
     QOpenGLBuffer m_vbo;
+    QOpenGLBuffer m_nbo;
     QOpenGLBuffer m_tbo;
     QOpenGLBuffer m_ibo;
     QOpenGLVertexArrayObject m_vao;
