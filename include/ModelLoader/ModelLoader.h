@@ -44,6 +44,8 @@ protected:
         int m_vertexId2Mesh = 0;              // vertex 在 mesh 上的 id
         QVector<int> m_vertexIndicesOfPolygon = {};    // 一个多边形的所有 vertex index
         QSharedPointer<VertexBuffer> m_vertexBuffer;   // mesh 搜集到的 vertex buffer
+
+
     };
 
     struct SingleVertex {
@@ -152,6 +154,8 @@ private:
     void processMeshesForNode(FbxNode *fbxNode, QSharedPointer<Node> &node);
 
     void processAllData(FbxNode *fbxNode, QSharedPointer<Node> &node);
+
+    double getScaleRatio();
 
     void processNode(FbxNode *fbxNode, QSharedPointer<Node> &node);
 

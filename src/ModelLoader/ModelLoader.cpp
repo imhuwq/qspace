@@ -58,11 +58,12 @@ bool ModelLoader::VertexTable::insert(SingleVertexPtr &singleVertex, QSharedPoin
     }
 
     if (insertSuccess) {
-        vertexContext->m_vertexBuffer->extendPositions(singleVertex->m_positions);
-        vertexContext->m_vertexBuffer->extendNormals(singleVertex->m_normals);
-        vertexContext->m_vertexBuffer->extendUV0s(singleVertex->m_uv0s);
-        vertexContext->m_vertexBuffer->extendUV1s(singleVertex->m_uv1s);
-        vertexContext->m_vertexBuffer->extendColors(singleVertex->m_colors);
+        int insertIndex = vertexContext->m_vertexIndex2Mesh;
+        vertexContext->m_vertexBuffer->insertPositions(singleVertex->m_positions, insertIndex * 3, 3);
+        vertexContext->m_vertexBuffer->insertNormals(singleVertex->m_normals, insertIndex * 3, 3);
+        vertexContext->m_vertexBuffer->insertUV0s(singleVertex->m_uv0s, insertIndex * 2, 2);
+        vertexContext->m_vertexBuffer->insertUV1s(singleVertex->m_uv1s, insertIndex * 2, 2);
+        vertexContext->m_vertexBuffer->insertColors(singleVertex->m_colors, insertIndex * 3, 3);
     }
 
     return insertSuccess;
@@ -409,8 +410,7 @@ void ModelLoader::collectMeshData(FbxMesh *fbxMesh, QSharedPointer<VertexContext
             // 把 vertex index 加入到 mesh model 里面去
             mesh->extendTmpIndices(vertexContext->m_vertexIndicesOfPolygon);
         }
-    }
-    else {
+    } else {
         // 根据找到的 material 的名字找到(创建) 对应的 mesh instance
         QSharedPointer<Mesh> mesh(new Mesh());
         if (node->hasMesh(materialName)) {
@@ -433,6 +433,7 @@ void ModelLoader::processMeshesForNode(FbxNode *fbxNode, QSharedPointer<Node> &n
     VertexTable vertexTable(controlPointsCount);
     QSharedPointer<VertexContext> vertexContext(new VertexContext());
     vertexContext->m_vertexBuffer = m_scene->getVertexBuffer();
+    int meshIndexOffset = vertexContext->m_vertexBuffer->getIndicesSize();
 
     for (int polygonIndex = 0; polygonIndex < fbxMesh->GetPolygonCount(); polygonIndex++) {
         vertexContext->m_polygonIndex2Mesh = polygonIndex;
@@ -449,10 +450,8 @@ void ModelLoader::processMeshesForNode(FbxNode *fbxNode, QSharedPointer<Node> &n
         vertexContext->m_vertexIndicesOfPolygon.clear();
     }
 
-    QVectorIterator<QSharedPointer<Mesh>> meshes(node->meshes());
-    while (meshes.hasNext()) {
-        auto mesh = meshes.next();
-        mesh->setIndexOffset(vertexContext->m_vertexBuffer->getIndicesSize());
+    for (auto mesh:node->meshes()) {
+        mesh->setIndexOffset(meshIndexOffset);
         vertexContext->m_vertexBuffer->extendIndices(mesh->indices());
         mesh->setIndexCount(mesh->indices().size());
         mesh->clearIndices();
@@ -475,9 +474,27 @@ void ModelLoader::processNode(FbxNode *fbxNode, QSharedPointer<Node> &node) {
     }
 }
 
+double ModelLoader::getScaleRatio() {
+    FbxSystemUnit lSysUnit = m_fbxScene->GetGlobalSettings().GetSystemUnit();
+
+    if (lSysUnit == FbxSystemUnit::mm) return 0.001;
+    if (lSysUnit == FbxSystemUnit::dm) return 0.1;
+    if (lSysUnit == FbxSystemUnit::cm) return 0.01;
+    if (lSysUnit == FbxSystemUnit::m) return 1.0;
+    if (lSysUnit == FbxSystemUnit::km) return 1000.0;
+    if (lSysUnit == FbxSystemUnit::Inch) return 0.0254;
+    if (lSysUnit == FbxSystemUnit::Foot) return 0.3048;
+    if (lSysUnit == FbxSystemUnit::Mile) return 1609.344;
+    if (lSysUnit == FbxSystemUnit::Yard) return 0.9144;
+    return 1.0;
+}
+
 void ModelLoader::processNodes() {
     FbxNode *rootFbxNode = m_fbxScene->GetRootNode();
     QSharedPointer<Node> rootNode(new Node(rootFbxNode->GetName()));
     processNode(rootFbxNode, rootNode);
+    double scaleRatio = getScaleRatio();
+    rootNode->scaleByRatio(scaleRatio);
     m_scene->setRootNode(rootNode);
+    qDebug() << m_scene->m_vertexBuffer->m_positions;
 }

@@ -3,7 +3,17 @@
 
 #include <QtCore/QVector>
 
+template<typename T>
+void insertIntoVector(const QVector<T> &values, QVector<T> &receiver, int start, int count) {
+    int minSize = start + count;
+    if (receiver.size() < minSize) receiver.resize(minSize);
+    move(values.begin(), values.begin() + count, receiver.begin() + start);
+}
+
 struct VertexBuffer {
+    template<typename T>
+    friend void insertIntoVector(const QVector<T> &values, QVector<T> &receiver, int start, int count);
+
     QVector<int> m_indices = {};
     QVector<double> m_positions = {};
     QVector<double> m_normals = {};
@@ -29,17 +39,25 @@ struct VertexBuffer {
         }
     }
 
-    void extendPositions(const QVector<double> &positions) {
-        m_positions.append(positions);
+    void insertPositions(const QVector<double> &positions, int startIndex, int count) {
+        insertIntoVector(positions, m_positions, startIndex, count);
     }
 
-    void extendNormals(const QVector<double> &normals) { m_normals.append(normals); }
+    void insertNormals(const QVector<double> &normals, int startIndex, int count) {
+        insertIntoVector(normals, m_normals, startIndex, count);
+    }
 
-    void extendUV0s(QVector<double> &uv0s) { m_uv0s.append(uv0s); }
+    void insertUV0s(QVector<double> &uv0s, int startIndex, int count) {
+        insertIntoVector(uv0s, m_uv0s, startIndex, count);
+    }
 
-    void extendUV1s(QVector<double> &uv1s) { m_uv0s.append(uv1s); }
+    void insertUV1s(QVector<double> &uv1s, int startIndex, int count) {
+        insertIntoVector(uv1s, m_uv1s, startIndex, count);
+    }
 
-    void extendColors(QVector<int> &colors) { colors.append(colors); }
+    void insertColors(QVector<int> &colors, int startIndex, int count) {
+        insertIntoVector(colors, m_colors, startIndex, count);
+    }
 
     int getIndicesSize() { return m_indices.size(); }
 };

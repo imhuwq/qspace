@@ -34,6 +34,8 @@ public:
 
     QSharedPointer<Node> &getNodeAt(unsigned int index) { return m_nodes[index]; }
 
+    void scaleByRatio(double ratio) { m_transformation.scale(ratio); }
+
 private:
     QString m_name;
     QMatrix4x4 m_transformation;
