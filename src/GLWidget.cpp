@@ -63,14 +63,14 @@ void GLWidget::createBuffers() {
 }
 
 void GLWidget::createTexturesForNode(const QSharedPointer<Node> &node) {
-    for (const auto &mesh:node->meshes()) {
-        const auto &material = mesh->material();
-        for (const auto &textureInfo:material->texturePaths().toStdMap()) {
-            QString key = textureInfo.first + "_" + textureInfo.second;
-            QSharedPointer<QOpenGLTexture> texture(new QOpenGLTexture(QImage(textureInfo.second).mirrored()));
-            m_textures[key] = texture;
-        }
-    }
+//    for (const auto &mesh:node->meshes()) {
+//        const auto &material = mesh->material();
+//        for (const auto &textureInfo:material->texturePaths().toStdMap()) {
+//            QString key = textureInfo.first + "_" + textureInfo.second;
+//            QSharedPointer<QOpenGLTexture> texture(new QOpenGLTexture(QImage(textureInfo.second).mirrored()));
+//            m_textures[key] = texture;
+//        }
+//    }
 
     for (const auto& childNode:node->nodes()) {
         createTexturesForNode(childNode);
@@ -84,7 +84,7 @@ void GLWidget::createTextures() {
 }
 
 void GLWidget::loadModelFile(QString filePath) {
-    filePath = filePath.length() == 0 ? "test_files/cube.obj" : filePath;
+    filePath = filePath.length() == 0 ? "test_files/ball.fbx" : filePath;
 
     if (!m_loader->checkFileFormatIsOk(filePath)) {
         qDebug() << "Unsupported file format: " << filePath << "\n";
@@ -123,11 +123,11 @@ void GLWidget::drawNode(QSharedPointer<Node> node, QMatrix4x4 objectMatrix) {
     m_shd->setUniformValue("modelToWorld", objectMatrix);
 
     for (auto &mesh:node->meshes()) {
-        const auto &material = mesh->material();
-        for (const auto &textureInfo:material->texturePaths().toStdMap()) {
-            QString key = textureInfo.first + "_" + textureInfo.second;
-            m_textures[key]->bind();
-        }
+//        const auto &material = mesh->material();
+//        for (const auto &textureInfo:material->texturePaths().toStdMap()) {
+//            QString key = textureInfo.first + "_" + textureInfo.second;
+//            m_textures[key]->bind();
+//        }
         glDrawElements(GL_TRIANGLES, mesh->indexCount(), GL_UNSIGNED_INT, (void *) (mesh->indexOffset() * sizeof(unsigned int)));
     }
 
