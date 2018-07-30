@@ -256,10 +256,9 @@ void ModelLoader::processTRSforNode(FbxNode *fbxNode, QSharedPointer<Node> &node
 
     QMatrix4x4 nodeTransformation;
     nodeTransformation.setToIdentity();
-    nodeTransformation.translate(ADAPT_FBXVECTOR4_TO_QVECTOR_FLOAT(translation));
-    nodeTransformation.rotate(ADAPT_FBXVECTOR4_TO_QVECTOR_FLOAT(rotation));
-    nodeTransformation.scale(ADAPT_FBXVECTOR4_TO_QVECTOR_FLOAT(scale));
-    node->setTransformation(nodeTransformation);
+    node->setPosition({ADAPT_FBXVECTOR4_TO_QVECTOR_FLOAT(translation)});
+    node->setRotation({ADAPT_FBXVECTOR4_TO_QVECTOR_FLOAT(rotation)});
+    node->setScale({ADAPT_FBXVECTOR4_TO_QVECTOR_FLOAT(scale)});
 }
 
 void ModelLoader::prepareFbxMesh(FbxMesh *&fbxMesh) {
@@ -496,5 +495,4 @@ void ModelLoader::processNodes() {
     double scaleRatio = getScaleRatio();
     rootNode->scaleByRatio(scaleRatio);
     m_scene->setRootNode(rootNode);
-    qDebug() << m_scene->m_vertexBuffer->m_positions;
 }

@@ -14,7 +14,7 @@ struct VertexBuffer {
     template<typename T>
     friend void insertIntoVector(const QVector<T> &values, QVector<T> &receiver, int start, int count);
 
-    QVector<int> m_indices = {};
+    QVector<unsigned int> m_indices = {};
     QVector<double> m_positions = {};
     QVector<double> m_normals = {};
     QVector<double> m_uv0s = {};
@@ -30,7 +30,7 @@ struct VertexBuffer {
         m_colors.resize(0);
     }
 
-    const QVector<int> &indices() const { return m_indices; }
+    const QVector<unsigned int> &indices() const { return m_indices; }
 
     void extendIndices(const QVector<int> &indices) {
         int offset = m_indices.size();

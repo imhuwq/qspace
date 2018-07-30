@@ -13,6 +13,7 @@
 class ModelLoader;
 
 class Scene {
+
     friend ModelLoader;
 public:
     Scene() {
@@ -29,13 +30,11 @@ public:
 
     const QSharedPointer<VertexBuffer> getVertexBuffer() const { return m_vertexBuffer; }
 
-    void setVertexBuffer(QSharedPointer<VertexBuffer> &vertexBuffer) { m_vertexBuffer = vertexBuffer; }
-
     const QSharedPointer<Node> rootNode() const { return m_rootNode; }
 
     void setRootNode(QSharedPointer<Node> &rootNode) { m_rootNode = rootNode; }
 
-    unsigned int getIndicesSize() { return m_vertexBuffer->getIndicesSize(); }
+    int getIndicesSize() { return m_vertexBuffer->getIndicesSize(); }
 
     QSharedPointer<const VertexBuffer> getVertexBufferConst() { return m_vertexBuffer; }
 

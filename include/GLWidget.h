@@ -59,14 +59,10 @@ protected slots:
     void update();
 
 private:
-    bool m_glInitialized;
-
-    QOpenGLBuffer m_vbo;
-    QOpenGLBuffer m_nbo;
-    QOpenGLBuffer m_tbo;
-    QOpenGLBuffer m_ibo;
-    QOpenGLVertexArrayObject m_vao;
-    QOpenGLShaderProgram *m_shd;
+    QOpenGLBuffer m_vertexBuffer;
+    QOpenGLBuffer m_indexBuffer;
+    QOpenGLVertexArrayObject m_vertexArrayObject;
+    QOpenGLShaderProgram *m_shaderProgram;
     QMap<QString, QSharedPointer<QOpenGLTexture>> m_textures;
 
     Camera3D m_camera;
