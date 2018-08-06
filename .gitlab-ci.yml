@@ -4,12 +4,16 @@ stages:
 
 job add_remote_github:
   stage: add_remote
+  tags:
+    - github-pusher
   script: 
     - git remote add github git@github.com:imhuwq/$CI_PROJECT_NAME.git
   allow_failure: true
 
 job push_github:
  stage: push_remote
+ tags:
+  - github-pusher
  script:
   - git push github
   - git push github --tags
