@@ -14,7 +14,7 @@
 #include <QOpenGLTexture>
 
 #include "Transform3D.h"
-#include "Camera3D.h"
+#include "Scene/Camera3D.h"
 #include "Input.h"
 #include "ModelLoader/ModelLoader.h"
 #include "Scene/Scene.h"

@@ -43,7 +43,6 @@ public:
 
     QVector3D getRotation() { return m_rotation; }
 
-
     void setScale(const QVector3D &scale) {
         m_dirty = true;
         m_scale = scale;

@@ -24,7 +24,6 @@ public:
         m_translation = target->getPosition() - rotation * offset;
         m_matrix.setToIdentity();
         m_matrix.lookAt(m_translation, target->getPosition(), LocalUp);
-        qDebug() << m_matrix;
     }
 
 private:
