@@ -8,10 +8,10 @@ static const char *vertexShaderSource =
         "attribute highp vec4 posAttr;\n"
                 "attribute lowp vec4 colAttr;\n"
                 "varying lowp vec4 col;\n"
-                "uniform highp mat4 matrix;\n"
+                "uniform highp mat4 toMatrix;\n"
                 "void main() {\n"
                 "   col = colAttr;\n"
-                "   gl_Position = matrix * posAttr;\n"
+                "   gl_Position = toMatrix * posAttr;\n"
                 "}\n";
 
 static const char *fragmentShaderSource =
@@ -27,7 +27,7 @@ void TriangleWindow::initialize() {
     m_program->link();
     m_posAttr = m_program->attributeLocation("posAttr");
     m_colAttr = m_program->attributeLocation("colAttr");
-    m_matrixUniform = m_program->uniformLocation("matrix");
+    m_matrixUniform = m_program->uniformLocation("toMatrix");
 }
 
 void TriangleWindow::render() {

@@ -24,8 +24,7 @@ public:
 
 protected:
     struct TextureContext {
-        TextureContext(const char *channel, int layer, int blend) : m_textureChannel(channel), m_layerIndex(layer),
-                                                                    m_blendMode(blend) {}
+        TextureContext(const char *channel, int layer, int blend) : m_textureChannel(channel), m_layerIndex(layer), m_blendMode(blend) {}
 
         const char *m_textureChannel = nullptr;
         int m_layerIndex = 0;
@@ -44,8 +43,6 @@ protected:
         int m_vertexId2Mesh = 0;              // vertex 在 mesh 上的 id
         QVector<int> m_vertexIndicesOfPolygon = {};    // 一个多边形的所有 vertex index
         QSharedPointer<VertexBuffer> m_vertexBuffer;   // mesh 搜集到的 vertex buffer
-
-
     };
 
     struct SingleVertex {
@@ -124,8 +121,7 @@ private:
 
     void collectMaterialData(FbxSurfaceMaterial *fbxMaterial, QSharedPointer<Material> &material);
 
-    void
-    collectTextureData(FbxTexture *fbxTexture, TextureContextPtr textureContext, QSharedPointer<Material> &material);
+    void collectTextureData(FbxTexture *fbxTexture, TextureContextPtr textureContext, QSharedPointer<Material> &material);
 
     void collectTextureData(FbxSurfaceMaterial *fbxMaterial, QSharedPointer<Material> &material);
 
@@ -135,17 +131,13 @@ private:
 
     void prepareFbxMesh(FbxMesh *&fbxMesh);
 
-    void collectVertexPosition(FbxMesh *fbxMesh, SingleVertexPtr &singleVertex,
-                               QSharedPointer<VertexContext> &vertexContext);
+    void collectVertexPosition(FbxMesh *fbxMesh, SingleVertexPtr &singleVertex, QSharedPointer<VertexContext> &vertexContext);
 
-    void
-    collectVertexNormal(FbxMesh *fbxMesh, SingleVertexPtr &singleVertex, QSharedPointer<VertexContext> &vertexContext);
+    void collectVertexNormal(FbxMesh *fbxMesh, SingleVertexPtr &singleVertex, QSharedPointer<VertexContext> &vertexContext);
 
-    void collectVertexTexCoords(FbxMesh *fbxMesh, SingleVertexPtr &singleVertex,
-                                QSharedPointer<VertexContext> &vertexContext);
+    void collectVertexTexCoords(FbxMesh *fbxMesh, SingleVertexPtr &singleVertex, QSharedPointer<VertexContext> &vertexContext);
 
-    void
-    collectVertexColor(FbxMesh *fbxMesh, SingleVertexPtr &singleVertex, QSharedPointer<VertexContext> &vertexContext);
+    void collectVertexColor(FbxMesh *fbxMesh, SingleVertexPtr &singleVertex, QSharedPointer<VertexContext> &vertexContext);
 
     void collectVertexData(FbxMesh *fbxMesh, VertexTable &vertexTable, QSharedPointer<VertexContext> &vertexContext);
 

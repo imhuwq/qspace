@@ -125,7 +125,7 @@ void GLWidget::paintGL() {
     m.rotate(yRot / 16.0f, 0.0f, 1.0f, 0.0f);
     m.rotate(zRot / 16.0f, 0.0f, 0.0f, 1.0f);
 
-    program->setUniformValue("matrix", m);
+    program->setUniformValue("toMatrix", m);
     program->enableAttributeArray(PROGRAM_VERTEX_ATTRIBUTE);
     program->enableAttributeArray(PROGRAM_TEXCOORD_ATTRIBUTE);
     program->setAttributeBuffer(PROGRAM_VERTEX_ATTRIBUTE, GL_FLOAT, 0, 3, 5 * sizeof(GLfloat));

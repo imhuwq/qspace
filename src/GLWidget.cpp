@@ -1,12 +1,11 @@
 #include "GLWidget.h"
 #include <QPair>
+#include <QtMath>
 #include <iostream>
 
 using namespace std;
 
-GLWidget::GLWidget() : m_shaderProgram(nullptr), m_vertexBuffer(QOpenGLBuffer::VertexBuffer),
-                       m_indexBuffer(QOpenGLBuffer::IndexBuffer) {
-
+GLWidget::GLWidget() : m_shaderProgram(nullptr), m_vertexBuffer(QOpenGLBuffer::VertexBuffer), m_indexBuffer(QOpenGLBuffer::IndexBuffer) {
     QSurfaceFormat format;
     format.setRenderableType(QSurfaceFormat::OpenGL);
     format.setProfile(QSurfaceFormat::CoreProfile);
@@ -15,7 +14,7 @@ GLWidget::GLWidget() : m_shaderProgram(nullptr), m_vertexBuffer(QOpenGLBuffer::V
     format.setDepthBufferSize(24);
     format.setStencilBufferSize(8);
     setFormat(format);
-    m_transform.translate(0.0f, 0.0f, -10.0f);
+    m_transform.translate(0.0f, 0.0f, 0.0f);
 }
 
 void GLWidget::createShaders() {
@@ -55,7 +54,10 @@ void GLWidget::loadModelFile(QString filePath) {
 
     m_scene = QSharedPointer<Scene>(new Scene);
     m_loader = QSharedPointer<ModelLoader>(new ModelLoader);
-    if (!m_loader->load(filePath, m_scene)) qDebug() << "Failed to load file: " << filePath << "\n";
+    if (!m_loader->load(filePath, m_scene)) {
+        qDebug() << "Failed to load file: " << filePath << "\n";
+        exit(1);
+    }
 }
 
 void GLWidget::initializeGL() {
@@ -74,15 +76,15 @@ void GLWidget::initializeGL() {
 
 void GLWidget::resizeGL(int w, int h) {
     m_projection.setToIdentity();
-    m_projection.perspective(45.0f, w / float(h), 0.001f, 1000.0f);
+    m_projection.perspective(45.0f, w / float(h), 0.1f, 100.0f);
 }
 
 void GLWidget::drawNode(QSharedPointer<Node> node, QMatrix4x4 objectMatrix) {
-    objectMatrix *= node->transformation();
+    objectMatrix *= node->getTransformation();
     m_shaderProgram->setUniformValue("modelToWorld", objectMatrix);
 
     for (auto &mesh:node->meshes()) {
-        glDrawElements(GL_TRIANGLES, mesh->indexCount(), GL_UNSIGNED_INT, 0);
+        glDrawElements(GL_TRIANGLES, mesh->indexCount(), GL_UNSIGNED_INT, (void *) (mesh->indexOffset() * sizeof(unsigned int)));
     }
 
     for (auto &childNode:node->nodes()) drawNode(childNode, objectMatrix);
@@ -90,9 +92,9 @@ void GLWidget::drawNode(QSharedPointer<Node> node, QMatrix4x4 objectMatrix) {
 
 void GLWidget::paintGL() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    m_shaderProgram->setUniformValue("modelToWorld", m_transform.toMatrix());
     m_shaderProgram->setUniformValue("worldToCamera", m_camera.toMatrix());
     m_shaderProgram->setUniformValue("cameraToView", m_projection);
-    m_shaderProgram->setUniformValue("modelToWorld", m_transform.toMatrix());
     drawNode(m_scene->rootNode(), m_transform.toMatrix());
 }
 
@@ -114,20 +116,7 @@ void GLWidget::printContextInformation() {
 
 void GLWidget::update() {
     Input::update();
-
-    if (Input::buttonPressed(Qt::LeftButton)) {
-        static const float transSpeed = 0.3f;
-        static const float rotSpeed = 0.3f;
-
-        m_camera.rotate(-rotSpeed * Input::mouseDelta().x(), Camera3D::LocalUp);
-        m_camera.rotate(-rotSpeed * Input::mouseDelta().y(), m_camera.right());
-
-        QVector3D translation;
-        m_camera.translate(transSpeed * translation);
-    }
-
-    m_transform.rotate(1.0f, QVector3D(0.4f, 0.3f, 0.3f));
-
+    if (Input::buttonPressed(Qt::LeftButton)) { m_camera.orbitAround(m_scene->rootNode()); }
     QOpenGLWidget::update();
 }
 

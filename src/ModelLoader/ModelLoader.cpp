@@ -164,8 +164,7 @@ void ModelLoader::collectMaterialData(FbxSurfaceMaterial *fbxMaterial, QSharedPo
     }
 }
 
-void ModelLoader::collectTextureData(FbxTexture *fbxTexture, TextureContextPtr textureContext,
-                                     QSharedPointer<Material> &material) {
+void ModelLoader::collectTextureData(FbxTexture *fbxTexture, TextureContextPtr textureContext, QSharedPointer<Material> &material) {
     QString textureChannelName = QString(textureContext->m_textureChannel);
     textureChannelName = textureChannelName + "_" + QString::number(textureContext->m_layerIndex);
     QSharedPointer<TextureData> textureData(new TextureData(textureChannelName));
@@ -254,9 +253,7 @@ void ModelLoader::processTRSforNode(FbxNode *fbxNode, QSharedPointer<Node> &node
     FbxVector4 rotation = fbxNodeLocalTransform.GetR();
     FbxVector4 scale = fbxNodeLocalTransform.GetS();
 
-    QMatrix4x4 nodeTransformation;
-    nodeTransformation.setToIdentity();
-    node->setPosition({ADAPT_FBXVECTOR4_TO_QVECTOR_FLOAT(translation)});
+//    node->setPosition({ADAPT_FBXVECTOR4_TO_QVECTOR_FLOAT(translation)});
     node->setRotation({ADAPT_FBXVECTOR4_TO_QVECTOR_FLOAT(rotation)});
     node->setScale({ADAPT_FBXVECTOR4_TO_QVECTOR_FLOAT(scale)});
 }
@@ -267,15 +264,13 @@ void ModelLoader::prepareFbxMesh(FbxMesh *&fbxMesh) {
     fbxMesh->GenerateNormals(false, true, false);
 }
 
-void ModelLoader::collectVertexPosition(FbxMesh *fbxMesh, SingleVertexPtr &singleVertex,
-                                        QSharedPointer<VertexContext> &vertexContext) {
+void ModelLoader::collectVertexPosition(FbxMesh *fbxMesh, SingleVertexPtr &singleVertex, QSharedPointer<VertexContext> &vertexContext) {
     FbxVector4 *controlPoints = fbxMesh->GetControlPoints();
     FbxVector4 controlPoint = controlPoints[vertexContext->m_controlPointIndex2Mesh];
     singleVertex->m_positions = {ADAPT_FBXVECTOR4_TO_QVECTOR_DOUBLE(controlPoint)};
 }
 
-void ModelLoader::collectVertexNormal(FbxMesh *fbxMesh, SingleVertexPtr &singleVertex,
-                                      QSharedPointer<VertexContext> &vertexContext) {
+void ModelLoader::collectVertexNormal(FbxMesh *fbxMesh, SingleVertexPtr &singleVertex, QSharedPointer<VertexContext> &vertexContext) {
     for (int normalIndex = 0; normalIndex < 1; normalIndex++) {
         FbxVector4 normal;
         bool normalFound = false;
@@ -305,8 +300,7 @@ void ModelLoader::collectVertexNormal(FbxMesh *fbxMesh, SingleVertexPtr &singleV
     }
 }
 
-void ModelLoader::collectVertexTexCoords(FbxMesh *fbxMesh, SingleVertexPtr &singleVertex,
-                                         QSharedPointer<VertexContext> &vertexContext) {
+void ModelLoader::collectVertexTexCoords(FbxMesh *fbxMesh, SingleVertexPtr &singleVertex, QSharedPointer<VertexContext> &vertexContext) {
     for (int texCoordIndex = 0; texCoordIndex < 2; texCoordIndex++) {
         FbxVector2 uv;
         bool uvFound = false;
@@ -340,8 +334,7 @@ void ModelLoader::collectVertexTexCoords(FbxMesh *fbxMesh, SingleVertexPtr &sing
     }
 }
 
-void ModelLoader::collectVertexColor(FbxMesh *fbxMesh, SingleVertexPtr &singleVertex,
-                                     QSharedPointer<VertexContext> &vertexContext) {
+void ModelLoader::collectVertexColor(FbxMesh *fbxMesh, SingleVertexPtr &singleVertex, QSharedPointer<VertexContext> &vertexContext) {
     for (int colorIndex = 0; colorIndex < 1; colorIndex++) {
         FbxColor color;
         bool colorFound = false;
@@ -372,8 +365,7 @@ void ModelLoader::collectVertexColor(FbxMesh *fbxMesh, SingleVertexPtr &singleVe
     }
 }
 
-void ModelLoader::collectVertexData(FbxMesh *fbxMesh, VertexTable &vertexTable,
-                                    QSharedPointer<VertexContext> &vertexContext) {
+void ModelLoader::collectVertexData(FbxMesh *fbxMesh, VertexTable &vertexTable, QSharedPointer<VertexContext> &vertexContext) {
     SingleVertexPtr singleVertex(new SingleVertex());
     collectVertexPosition(fbxMesh, singleVertex, vertexContext);
     collectVertexNormal(fbxMesh, singleVertex, vertexContext);
@@ -383,8 +375,7 @@ void ModelLoader::collectVertexData(FbxMesh *fbxMesh, VertexTable &vertexTable,
     vertexTable.insert(singleVertex, vertexContext);
 }
 
-void ModelLoader::collectMeshData(FbxMesh *fbxMesh, QSharedPointer<VertexContext> &vertexContext,
-                                  QSharedPointer<Node> &node) {
+void ModelLoader::collectMeshData(FbxMesh *fbxMesh, QSharedPointer<VertexContext> &vertexContext, QSharedPointer<Node> &node) {
     int materialCount = fbxMesh->GetElementMaterialCount();
 
     QString materialName = "default";
