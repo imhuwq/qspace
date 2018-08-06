@@ -9,7 +9,7 @@ job add_remote_github:
   allow_failure: true
 
 job push_github:
- stage: push
+ stage: push_remote
  script:
   - git push github
   - git push github --tags
