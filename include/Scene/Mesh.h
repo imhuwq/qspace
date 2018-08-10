@@ -3,28 +3,58 @@
 
 #include <QString>
 #include <QSharedPointer>
+
 #include "Material.h"
+#include "Node.h"
+#include "Geometry.h"
 
-class Mesh {
+class Mesh;
+
+typedef QSharedPointer<Mesh> MeshPtr;
+
+typedef QSharedPointer<const Mesh> kMeshPtr;
+
+class FbxLoader;
+
+class Mesh : public Node {
+    friend FbxLoader;
+
 public:
-    void extendTmpIndices(const QVector<int> &indices) { m_indices.append(indices); }
+    explicit Mesh(const QString &name, NodeType type = NodeType::kMesh) : Node(name, type) {}
 
-    const QVector<int> &indices() { return m_indices; }
+    void AddGeometry(const GeometryPtr &geometry) { geometries_[geometry->GetMaterialName()] = geometry; }
 
-    void clearIndices() { m_indices.clear(); }
+    bool HasGeometry(const QString &material_name) { return geometries_.contains(material_name); }
 
-    int indexCount() const { return m_indexCount; }
+    kGeometryPtr GetGeometry(const QString &material_name) const { return geometries_[material_name]; }
 
-    void setIndexCount(int count) { m_indexCount = count; }
-
-    int indexOffset() const { return m_indexOffset; }
-
-    void setIndexOffset(int index) { m_indexOffset = index; }
+    QVector<kGeometryPtr> GetGeometries() const {
+        QVector<kGeometryPtr> geometries;
+        for (kGeometryPtr geometry: geometries_.values()) geometries.push_back(geometry);
+        return geometries;
+    }
 
 private:
-    QVector<int> m_indices;  // 合并到 node 的 vertexBuffer 后成为空的
-    int m_indexCount;
-    int m_indexOffset;
+    GeometryPtr GetGeometry(const QString &material_name) { return geometries_[material_name]; }
+
+    GeometryPtr GetOrCreateGeometry(const QString &material_name) {
+        GeometryPtr geometry;
+        if (!HasGeometry(material_name)) {
+            geometry = GeometryPtr(new Geometry(material_name));
+            AddGeometry(geometry);
+        } else {
+            geometry = GetGeometry(material_name);
+        }
+        return geometry;
+    }
+
+    QVector<GeometryPtr> GetGeometries() {
+        QVector<GeometryPtr> geometries;
+        for (GeometryPtr geometry: geometries_.values()) geometries.push_back(geometry);
+        return geometries;
+    }
+
+    QMap<QString, GeometryPtr> geometries_;
 };
 
 #endif //QSPACE_MESH_H

@@ -7,7 +7,7 @@ const QVector3D Transform3D::LocalRight(1.0f, 0.0f, 0.0f);
 QDebug operator<<(QDebug dbg, const Transform3D &transform) {
     dbg << "Transform3D\n{\n";
     dbg << "Position: <" << transform.translation().x() << ", " << transform.translation().y() << ", " << transform.translation().z() << ">\n";
-    dbg << "Scale: <" << transform.scale().x() << ", " << transform.scale().y() << ", " << transform.scale().z() << ">\n";
+    dbg << "SetScale: <" << transform.scale().x() << ", " << transform.scale().y() << ", " << transform.scale().z() << ">\n";
     dbg << "Rotation: <" << transform.rotation().x() << ", " << transform.rotation().y() << ", " << transform.rotation().z() << " | "
         << transform.rotation().scalar() << ">\n}";
     return dbg;

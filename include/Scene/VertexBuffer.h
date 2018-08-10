@@ -1,65 +1,74 @@
 #ifndef QSPACE_VERTEXBUFFER_H
 #define QSPACE_VERTEXBUFFER_H
 
-#include <QtCore/QVector>
+#include <QVector>
+#include <QSharedPointer>
+
+using namespace std;
 
 template<typename T>
-void insertIntoVector(const QVector<T> &values, QVector<T> &receiver, int start, int count) {
+void InsertIntoVector(const QVector<T> &values, QVector<T> &receiver, int start, int count) {
     int minSize = start + count;
     if (receiver.size() < minSize) receiver.resize(minSize);
     move(values.begin(), values.begin() + count, receiver.begin() + start);
 }
 
-struct VertexBuffer {
-    template<typename T>
-    friend void insertIntoVector(const QVector<T> &values, QVector<T> &receiver, int start, int count);
+class VertexBuffer;
 
-    QVector<unsigned int> m_indices = {};
-    QVector<double> m_positions = {};
-    QVector<double> m_normals = {};
-    QVector<double> m_uv0s = {};
-    QVector<double> m_uv1s = {};
-    QVector<int> m_colors = {};
+typedef QSharedPointer<VertexBuffer> VertexBufferPtr;
 
-    VertexBuffer() {
-        m_indices.resize(0);
-        m_positions.resize(0);
-        m_normals.resize(0);
-        m_uv0s.resize(0);
-        m_uv1s.resize(0);
-        m_colors.resize(0);
-    }
+typedef QSharedPointer<const VertexBuffer> kVertexBufferPtr;
 
-    const QVector<unsigned int> &indices() const { return m_indices; }
+class VertexBuffer {
+public:
+    int GetIndicesSize() { return indices_.size(); }
 
-    void extendIndices(const QVector<int> &indices) {
-        int offset = m_indices.size();
-        for (const int index:indices) {
-            m_indices.push_back(index + offset);
+    void ExtendIndices(const QVector<unsigned int> &indices) {
+        unsigned int offset = (unsigned int) indices_.size();
+        for (unsigned int index:indices) {
+            indices_.push_back(index + offset);
         }
     }
 
-    void insertPositions(const QVector<double> &positions, int startIndex, int count) {
-        insertIntoVector(positions, m_positions, startIndex, count);
+    void InsertPositions(const QVector<double> &positions, int startIndex, int count) {
+        InsertIntoVector(positions, positions_, startIndex, count);
     }
 
-    void insertNormals(const QVector<double> &normals, int startIndex, int count) {
-        insertIntoVector(normals, m_normals, startIndex, count);
+    void InsertNormals(const QVector<double> &normals, int startIndex, int count) {
+        InsertIntoVector(normals, normals_, startIndex, count);
     }
 
-    void insertUV0s(QVector<double> &uv0s, int startIndex, int count) {
-        insertIntoVector(uv0s, m_uv0s, startIndex, count);
+    void InsertUV0(QVector<double> &uv0s, int startIndex, int count) {
+        InsertIntoVector(uv0s, uv0s, startIndex, count);
     }
 
-    void insertUV1s(QVector<double> &uv1s, int startIndex, int count) {
-        insertIntoVector(uv1s, m_uv1s, startIndex, count);
+    void InsertUV1(QVector<double> &uv1s, int startIndex, int count) {
+        InsertIntoVector(uv1s, uv1_, startIndex, count);
     }
 
-    void insertColors(QVector<int> &colors, int startIndex, int count) {
-        insertIntoVector(colors, m_colors, startIndex, count);
+    void InsertColors(QVector<int> &colors, int startIndex, int count) {
+        InsertIntoVector(colors, colors_, startIndex, count);
     }
 
-    int getIndicesSize() { return m_indices.size(); }
+    const QVector<unsigned int> &GetIndices() const { return indices_; }
+
+    const QVector<double> &GetPositions() const { return positions_; }
+
+    const QVector<double> &GetNormals() const { return normals_; }
+
+    const QVector<double> &GetUV0() const { return uv0_; }
+
+    const QVector<double> &GetUV1() const { return uv1_; }
+
+    const QVector<int> &GetColors() const { return colors_; }
+
+private:
+    QVector<unsigned int> indices_ = {};
+    QVector<double> positions_ = {};
+    QVector<double> normals_ = {};
+    QVector<double> uv0_ = {};
+    QVector<double> uv1_ = {};
+    QVector<int> colors_ = {};
 };
 
 #endif //QSPACE_VERTEXBUFFER_H

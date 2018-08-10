@@ -43,7 +43,7 @@ void MainWindow::dragEnterEvent(QDragEnterEvent *e) {
 void MainWindow::dropEvent(QDropEvent *e) {
     for (const QUrl &url:e->mimeData()->urls()) {
         QString fileName = url.toLocalFile();
-        m_glWidget->loadModelFile(fileName);
+        m_glWidget->LoadModelFile(fileName);
     }
 }
 

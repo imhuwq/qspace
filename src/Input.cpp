@@ -2,7 +2,7 @@
 #include <vector>
 #include <algorithm>
 
-#include "Input.h"
+#include "Control/Input.h"
 
 template<typename T>
 struct InputInstance : std::pair<T, Input::InputState> {
@@ -74,53 +74,53 @@ Input::InputState Input::keyState(Key key) {
     return it == sg_keyInstances.end() ? InputInvalid : it->second;
 }
 
-Input::InputState Input::buttonState(MouseButton button) {
+Input::InputState Input::ButtonState(MouseButton button) {
     ButtonContainer::iterator it = FindButton(button);
     return it == sg_buttonInstances.end() ? InputInvalid : it->second;
 }
 
-QPoint Input::mouseDelta() {
+QPoint Input::MouseDelta() {
     return sg_mouseDelta;
 }
 
-void Input::update() {
+void Input::Update() {
     sg_mousePrevPosition = sg_mouseCurrPosition;
     sg_mouseCurrPosition = QCursor::pos();
     sg_mouseDelta = sg_mouseCurrPosition - sg_mousePrevPosition;
 
-    Update(sg_buttonInstances);
-    Update(sg_keyInstances);
+    ::Update(sg_buttonInstances);
+    ::Update(sg_keyInstances);
 }
 
-void Input::registerKeyPress(int key) {
+void Input::RegisterKeyPress(int key) {
     KeyContainer::iterator it = FindKey((Key) key);
     if (it == sg_keyInstances.end()) {
         sg_keyInstances.emplace_back((Key) key, InputRegistered);
     }
 }
 
-void Input::registerKeyRelease(int key) {
+void Input::RegisterKeyRelease(int key) {
     KeyContainer::iterator it = FindKey((Key) key);
     if (it != sg_keyInstances.end()) {
         it->second = InputUnregistered;
     }
 }
 
-void Input::registerMousePress(MouseButton button) {
+void Input::RegisterMousePress(MouseButton button) {
     ButtonContainer::iterator it = FindButton(button);
     if (it == sg_buttonInstances.end()) {
         sg_buttonInstances.emplace_back(button, InputRegistered);
     }
 }
 
-void Input::registerMouseRelease(MouseButton button) {
+void Input::RegisterMouseRelease(MouseButton button) {
     ButtonContainer::iterator it = FindButton(button);
     if (it != sg_buttonInstances.end()) {
         it->second = InputUnregistered;
     }
 }
 
-void Input::reset() {
+void Input::Reset() {
     sg_keyInstances.clear();
     sg_buttonInstances.clear();
 }
