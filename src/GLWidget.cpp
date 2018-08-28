@@ -5,7 +5,7 @@
 
 using namespace std;
 
-GLWidget::GLWidget() : gl_shader_programe_(nullptr), gl_vertex_buffer_(QOpenGLBuffer::VertexBuffer), gl_index_buffer_(QOpenGLBuffer::IndexBuffer) {
+GLWidget::GLWidget() : gl_shader_program_(nullptr), gl_vertex_buffer_(QOpenGLBuffer::VertexBuffer), gl_index_buffer_(QOpenGLBuffer::IndexBuffer) {
     QSurfaceFormat format;
     format.setRenderableType(QSurfaceFormat::OpenGL);
     format.setProfile(QSurfaceFormat::CoreProfile);
@@ -14,15 +14,17 @@ GLWidget::GLWidget() : gl_shader_programe_(nullptr), gl_vertex_buffer_(QOpenGLBu
     format.setDepthBufferSize(24);
     format.setStencilBufferSize(8);
     setFormat(format);
-    transform_.translate(0.0f, 0.0f, 0.0f);
+
+    transform_ = NodePtr(new Node("transform"));
+    camera_ = CameraPtr(new Camera("default camera"));
 }
 
 void GLWidget::CreateShaders() {
-    gl_shader_programe_ = new QOpenGLShaderProgram();
-    gl_shader_programe_->addShaderFromSourceFile(QOpenGLShader::Vertex, "shaders/simple.vert");
-    gl_shader_programe_->addShaderFromSourceFile(QOpenGLShader::Fragment, "shaders/simple.frag");
-    gl_shader_programe_->link();
-    gl_shader_programe_->bind();
+    gl_shader_program_ = new QOpenGLShaderProgram();
+    gl_shader_program_->addShaderFromSourceFile(QOpenGLShader::Vertex, "shaders/simple.vert");
+    gl_shader_program_->addShaderFromSourceFile(QOpenGLShader::Fragment, "shaders/simple.frag");
+    gl_shader_program_->link();
+    gl_shader_program_->bind();
 };
 
 void GLWidget::CreateBuffers() {
@@ -36,8 +38,8 @@ void GLWidget::CreateBuffers() {
     gl_vertex_buffer_.setUsagePattern(QOpenGLBuffer::StaticDraw);
     gl_vertex_buffer_.bind();
     gl_vertex_buffer_.allocate(vertex_buffer->GetPositions().constData(), vertex_buffer->GetPositions().size() * sizeof(double));
-    gl_shader_programe_->enableAttributeArray(0);
-    gl_shader_programe_->setAttributeBuffer(0, GL_DOUBLE, 0, 3);
+    gl_shader_program_->enableAttributeArray(0);
+    gl_shader_program_->setAttributeBuffer(0, GL_DOUBLE, 0, 3);
 
     gl_index_buffer_.create();
     gl_index_buffer_.setUsagePattern(QOpenGLBuffer::StaticDraw);
@@ -77,12 +79,12 @@ void GLWidget::initializeGL() {
 
 void GLWidget::resizeGL(int w, int h) {
     projection_.setToIdentity();
-    projection_.perspective(45.0f, w / float(h), 0.1f, 100.0f);
+    projection_.perspective(45.0f, w / float(h), 0.01f, 100.0f);
 }
 
 void GLWidget::DrawNode(kNodePtr node, QMatrix4x4 objectMatrix) {
     objectMatrix *= node->GetTransformation();
-    gl_shader_programe_->setUniformValue("modelToWorld", objectMatrix);
+    gl_shader_program_->setUniformValue("modelToWorld", objectMatrix);
 
     if (node->GetType() == NodeType::kMesh) {
         kMeshPtr mesh = qSharedPointerDynamicCast<const Mesh>(node);
@@ -96,16 +98,16 @@ void GLWidget::DrawNode(kNodePtr node, QMatrix4x4 objectMatrix) {
 
 void GLWidget::paintGL() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    gl_shader_programe_->setUniformValue("modelToWorld", transform_.toMatrix());
-    gl_shader_programe_->setUniformValue("worldToCamera", camera_.toMatrix());
-    gl_shader_programe_->setUniformValue("cameraToView", projection_);
-    DrawNode(scene_->GetRootNode(), transform_.toMatrix());
+    gl_shader_program_->setUniformValue("modelMatrix", transform_->GetTransformation());
+    gl_shader_program_->setUniformValue("viewMatrix", camera_->GetTransformation());
+    gl_shader_program_->setUniformValue("projectionMatrix", projection_);
+    DrawNode(scene_->GetModel(), QMatrix4x4());
 }
 
 void GLWidget::TeardownGL() {
     gl_vertex_array_object_.destroy();
     gl_vertex_buffer_.destroy();
-    delete gl_shader_programe_;
+    delete gl_shader_program_;
 }
 
 void GLWidget::PrintContextInformation() {
@@ -120,7 +122,7 @@ void GLWidget::PrintContextInformation() {
 
 void GLWidget::update() {
     Input::Update();
-    if (Input::ButtonPressed(Qt::LeftButton)) { camera_.OrbitAround(scene_->GetRootNode()); }
+    if (Input::ButtonPressed(Qt::LeftButton)) { camera_->OrbitAround(scene_->GetModel()); }
     QOpenGLWidget::update();
 }
 

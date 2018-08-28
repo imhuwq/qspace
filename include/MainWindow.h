@@ -25,7 +25,7 @@ protected:
     void keyReleaseEvent(QKeyEvent* e);
 
 private:
-    GLWidget *m_glWidget;
+    GLWidget *gl_renderer;
 
     void setupSelfState();
 

@@ -4,9 +4,9 @@
 #include <QString>
 #include <QSharedPointer>
 
-#include "Material.h"
 #include "Node.h"
-#include "Geometry.h"
+#include "Scene/Material.h"
+#include "Scene/Geometry.h"
 
 class Mesh;
 

@@ -1,12 +1,12 @@
 #include "MainWindow.h"
 #include "Application.h"
 
-MainWindow::MainWindow(QWidget *parent) : m_glWidget(new GLWidget()) {
+MainWindow::MainWindow(QWidget *parent) : gl_renderer(new GLWidget()) {
     setupSelfState();
     setupGLWidget();
 }
 
-MainWindow::~MainWindow() { delete m_glWidget; }
+MainWindow::~MainWindow() { delete gl_renderer; }
 
 void MainWindow::setupSelfState() {
     setFixedSize(800, 800);
@@ -29,9 +29,9 @@ void MainWindow::setWindowToCenter() {
 }
 
 void MainWindow::setupGLWidget() {
-    if (!m_glWidget) m_glWidget = new GLWidget();
+    if (!gl_renderer) gl_renderer = new GLWidget();
     if (centralWidget()) centralWidget()->setParent(nullptr);
-    setCentralWidget(m_glWidget);
+    setCentralWidget(gl_renderer);
 }
 
 void MainWindow::dragEnterEvent(QDragEnterEvent *e) {
@@ -43,7 +43,7 @@ void MainWindow::dragEnterEvent(QDragEnterEvent *e) {
 void MainWindow::dropEvent(QDropEvent *e) {
     for (const QUrl &url:e->mimeData()->urls()) {
         QString fileName = url.toLocalFile();
-        m_glWidget->LoadModelFile(fileName);
+        gl_renderer->LoadModelFile(fileName);
     }
 }
 

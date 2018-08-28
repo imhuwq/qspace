@@ -57,7 +57,7 @@ bool FbxLoader::InitializeFbxSdkObjects() {
     fbx_manager_ = FbxManager::Create();
     FbxIOSettings *ios = FbxIOSettings::Create(fbx_manager_, IOSROOT);
     fbx_manager_->SetIOSettings(ios);
-    fbx_scene_ = FbxScene::Create(fbx_manager_, "Scene");
+    fbx_scene_ = FbxScene::Create(fbx_manager_, "3dObject");
     return true;
 }
 
@@ -412,5 +412,5 @@ void FbxLoader::ProcessNodes() {
     ProcessNode(root_fbx_node, root_node);
     double scale_ratio = GetScaleRatio();
     root_node->Scale(scale_ratio);
-    scene_->SetRootNode(root_node);
+    scene_->SetModel(root_node);
 }

@@ -1,3 +1,3 @@
-#include "Scene/Camera.h"
+#include "3dObject/Camera.h"
 
 const QVector3D Camera::LocalUp(0.0f, 1.0f, 0.0f);

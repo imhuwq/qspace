@@ -13,8 +13,7 @@
 #include <QImage>
 #include <QOpenGLTexture>
 
-#include "Transform3D.h"
-#include "Scene/Camera.h"
+#include "3dObject/Camera.h"
 #include "Control/Input.h"
 #include "ModelLoader/FbxLoader.h"
 #include "Scene/Scene.h"
@@ -35,8 +34,6 @@ protected:
     void CreateBuffers();
 
     void CreateShaders();
-
-    void createTextures();
 
     void initializeGL() override;
 
@@ -62,11 +59,11 @@ private:
     QOpenGLBuffer gl_vertex_buffer_;
     QOpenGLBuffer gl_index_buffer_;
     QOpenGLVertexArrayObject gl_vertex_array_object_;
-    QOpenGLShaderProgram *gl_shader_programe_;
+    QOpenGLShaderProgram *gl_shader_program_;
 
-    Camera camera_;
+    NodePtr transform_;
+    CameraPtr camera_;
     QMatrix4x4 projection_;
-    Transform3D transform_;
 
     FbxLoaderPtr loader_;
     ScenePtr scene_;

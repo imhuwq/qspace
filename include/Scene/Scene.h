@@ -1,14 +1,15 @@
-#ifndef QSPACE_SCENE_H
-#define QSPACE_SCENE_H
+#ifndef QSPACE_MODEL_H
+#define QSPACE_MODEL_H
 
 #include <QMap>
 #include <QString>
 #include <QVector>
 #include <QSharedPointer>
 
-#include "Node.h"
-#include "Material.h"
-#include "VertexBuffer.h"
+#include "Scene/Material.h"
+#include "3dObject/Node.h"
+#include "3dObject/Camera.h"
+#include "Scene/VertexBuffer.h"
 
 class Scene;
 
@@ -21,11 +22,13 @@ typedef QSharedPointer<const Scene> kScenePtr;
 class Scene {
     friend FbxLoader;
 public:
-    Scene() { vertex_buffer_ = VertexBufferPtr(new VertexBuffer()); }
+    Scene() {
+        vertex_buffer_ = VertexBufferPtr(new VertexBuffer());
+    }
 
-    kNodePtr GetRootNode() const { return root_node_; }
+    NodePtr GetModel() { return model_; }
 
-    void SetRootNode(const NodePtr &rootNode) { root_node_ = rootNode; }
+    void SetModel(const NodePtr &model) { model_ = model; }
 
     void AddTextureFile(const QString &texture_path) { texture_files_[texture_path] = texture_path; }
 
@@ -38,7 +41,7 @@ public:
     kVertexBufferPtr GetVertexBuffer() const { return vertex_buffer_; }
 
 private:
-    NodePtr root_node_;
+    NodePtr model_ = nullptr;
 
     QMap<QString, QString> texture_files_;
 
@@ -49,4 +52,4 @@ private:
     VertexBufferPtr GetVertexBuffer() { return vertex_buffer_; }
 };
 
-#endif //QSPACE_SCENE_H
+#endif //QSPACE_MODEL_H

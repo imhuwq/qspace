@@ -9,8 +9,8 @@
 #include <QSharedPointer>
 #include <fbxsdk.h>
 
-#include "Scene/Node.h"
-#include "Scene/Mesh.h"
+#include "3dObject/Node.h"
+#include "3dObject/Mesh.h"
 #include "Scene/Scene.h"
 #include "Scene/Material.h"
 #include "Scene/Texture.h"

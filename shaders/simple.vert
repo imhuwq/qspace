@@ -4,11 +4,11 @@ layout(location = 0) in vec3 position;
 
 out vec4 positionColor;
 
-uniform mat4 modelToWorld;
-uniform mat4 worldToCamera;
-uniform mat4 cameraToView;
+uniform mat4 modelMatrix;
+uniform mat4 viewMatrix;
+uniform mat4 projectionMatrix;
 
 void main() {
-	gl_Position = cameraToView * worldToCamera * modelToWorld * vec4(position, 1.0);
+	gl_Position = projectionMatrix * viewMatrix * modelMatrix * vec4(position, 1.0);
 	positionColor = gl_Position;
 }

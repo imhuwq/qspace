@@ -25,7 +25,9 @@ enum NodeType {
 
 class Node {
 public:
-    explicit Node(QString name, NodeType type = NodeType::kGeneral) : name_(move(name)), type_(type), translation_(0, 0, 0), rotation_(0, 0, 0), scale_(0, 0, 0) {}
+    explicit Node(QString name, NodeType type = NodeType::kGeneral) : name_(move(name)), type_(type), translation_(0, 0, 0), rotation_(0, 0, 0), scale_(1, 1, 1), dirty_(true) {
+        ComputeTransform();
+    }
 
     void SetName(const QString &name) { name_ = name; }
 
@@ -97,7 +99,7 @@ public:
 
     virtual ~Node() = default;
 
-private:
+protected:
     QString name_;
     NodeType type_;
     bool dirty_ = false;
