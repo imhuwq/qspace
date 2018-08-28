@@ -56,7 +56,8 @@ protected slots:
     void update();
 
 private:
-    QOpenGLBuffer gl_vertex_buffer_;
+    QOpenGLBuffer gl_position_buffer_;
+    QOpenGLBuffer gl_normal_buffer_;
     QOpenGLBuffer gl_index_buffer_;
     QOpenGLVertexArrayObject gl_vertex_array_object_;
     QOpenGLShaderProgram *gl_shader_program_;

@@ -5,7 +5,7 @@
 
 using namespace std;
 
-GLWidget::GLWidget() : gl_shader_program_(nullptr), gl_vertex_buffer_(QOpenGLBuffer::VertexBuffer), gl_index_buffer_(QOpenGLBuffer::IndexBuffer) {
+GLWidget::GLWidget() : gl_shader_program_(nullptr), gl_position_buffer_(QOpenGLBuffer::VertexBuffer), gl_index_buffer_(QOpenGLBuffer::IndexBuffer) {
     QSurfaceFormat format;
     format.setRenderableType(QSurfaceFormat::OpenGL);
     format.setProfile(QSurfaceFormat::CoreProfile);
@@ -34,12 +34,19 @@ void GLWidget::CreateBuffers() {
     kScenePtr kScene = scene_;
     kVertexBufferPtr vertex_buffer = kScene->GetVertexBuffer();
 
-    gl_vertex_buffer_.create();
-    gl_vertex_buffer_.setUsagePattern(QOpenGLBuffer::StaticDraw);
-    gl_vertex_buffer_.bind();
-    gl_vertex_buffer_.allocate(vertex_buffer->GetPositions().constData(), vertex_buffer->GetPositions().size() * sizeof(double));
+    gl_position_buffer_.create();
+    gl_position_buffer_.setUsagePattern(QOpenGLBuffer::StaticDraw);
+    gl_position_buffer_.bind();
+    gl_position_buffer_.allocate(vertex_buffer->GetPositions().constData(), vertex_buffer->GetPositions().size() * sizeof(double));
     gl_shader_program_->enableAttributeArray(0);
     gl_shader_program_->setAttributeBuffer(0, GL_DOUBLE, 0, 3);
+
+    gl_normal_buffer_.create();
+    gl_normal_buffer_.setUsagePattern(QOpenGLBuffer::StaticDraw);
+    gl_normal_buffer_.bind();
+    gl_normal_buffer_.allocate(vertex_buffer->GetNormals().constData(), vertex_buffer->GetPositions().size() * sizeof(double));
+    gl_shader_program_->enableAttributeArray(1);
+    gl_shader_program_->setAttributeBuffer(1, GL_DOUBLE, 0, 3);
 
     gl_index_buffer_.create();
     gl_index_buffer_.setUsagePattern(QOpenGLBuffer::StaticDraw);
@@ -106,7 +113,7 @@ void GLWidget::paintGL() {
 
 void GLWidget::TeardownGL() {
     gl_vertex_array_object_.destroy();
-    gl_vertex_buffer_.destroy();
+    gl_position_buffer_.destroy();
     delete gl_shader_program_;
 }
 
