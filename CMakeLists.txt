@@ -41,5 +41,3 @@ list(REMOVE_DUPLICATES PRJ_SOURCES)
 
 add_executable(main main.cpp ${PRJ_SOURCES})
 target_link_libraries(main ${PRJ_LIBRARIES} ${CMAKE_DL_LIBS})
-
-add_subdirectory(playground)
