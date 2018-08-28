@@ -13,10 +13,9 @@
 #include <QImage>
 #include <QOpenGLTexture>
 
-#include "Transform3D.h"
-#include "Scene/Camera3D.h"
-#include "Input.h"
-#include "ModelLoader/ModelLoader.h"
+#include "3dObject/Camera.h"
+#include "Control/Input.h"
+#include "ModelLoader/FbxLoader.h"
 #include "Scene/Scene.h"
 
 class GLWidget : public QOpenGLWidget, protected QOpenGLFunctions {
@@ -26,17 +25,15 @@ public:
 
     ~GLWidget() {
         makeCurrent();  // http://doc.qt.io/qt-5/qopenglwindow.html#dtor.QOpenGLWindow
-        teardownGL();
+        TeardownGL();
     }
 
-    void loadModelFile(QString filePath = "");
+    void LoadModelFile(QString filePath = "");
 
 protected:
-    void createBuffers();
+    void CreateBuffers();
 
-    void createShaders();
-
-    void createTextures();
+    void CreateShaders();
 
     void initializeGL() override;
 
@@ -44,7 +41,7 @@ protected:
 
     void paintGL() override;
 
-    void teardownGL();
+    void TeardownGL();
 
     void keyPressEvent(QKeyEvent *event);
 
@@ -59,24 +56,21 @@ protected slots:
     void update();
 
 private:
-    QOpenGLBuffer m_vertexBuffer;
-    QOpenGLBuffer m_indexBuffer;
-    QOpenGLVertexArrayObject m_vertexArrayObject;
-    QOpenGLShaderProgram *m_shaderProgram;
-    QMap<QString, QSharedPointer<QOpenGLTexture>> m_textures;
+    QOpenGLBuffer gl_vertex_buffer_;
+    QOpenGLBuffer gl_index_buffer_;
+    QOpenGLVertexArrayObject gl_vertex_array_object_;
+    QOpenGLShaderProgram *gl_shader_program_;
 
-    Camera3D m_camera;
-    QMatrix4x4 m_projection;
-    Transform3D m_transform;
+    NodePtr transform_;
+    CameraPtr camera_;
+    QMatrix4x4 projection_;
 
-    QSharedPointer<ModelLoader> m_loader;
-    QSharedPointer<Scene> m_scene;
+    FbxLoaderPtr loader_;
+    ScenePtr scene_;
 
-    void printContextInformation();
+    void PrintContextInformation();
 
-    void createTexturesForNode(const QSharedPointer<Node> &node);
-
-    void drawNode(QSharedPointer<Node> node, QMatrix4x4 objectMatrix);
+    void DrawNode(kNodePtr node, QMatrix4x4 objectMatrix);
 };
 
 #endif //QSPACE_GLWIDGET_H

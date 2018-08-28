@@ -1,50 +1,55 @@
-#ifndef QSPACE_SCENE_H
-#define QSPACE_SCENE_H
+#ifndef QSPACE_MODEL_H
+#define QSPACE_MODEL_H
 
 #include <QMap>
 #include <QString>
 #include <QVector>
+#include <QSharedPointer>
 
-#include "Node.h"
-#include "Material.h"
-#include "TextureFile.h"
-#include "VertexBuffer.h"
+#include "Scene/Material.h"
+#include "3dObject/Node.h"
+#include "3dObject/Camera.h"
+#include "Scene/VertexBuffer.h"
 
-class ModelLoader;
+class Scene;
+
+class FbxLoader;
+
+typedef QSharedPointer<Scene> ScenePtr;
+
+typedef QSharedPointer<const Scene> kScenePtr;
 
 class Scene {
-
-    friend ModelLoader;
+    friend FbxLoader;
 public:
     Scene() {
-        m_vertexBuffer = QSharedPointer<VertexBuffer>(new VertexBuffer());
+        vertex_buffer_ = VertexBufferPtr(new VertexBuffer());
     }
 
-    void addMaterial(const QSharedPointer<Material> &material) { m_materials[material->name()] = material; }
+    NodePtr GetModel() { return model_; }
 
-    QSharedPointer<Material> getMaterial(const QString &material_name) { return m_materials[material_name]; }
+    void SetModel(const NodePtr &model) { model_ = model; }
 
-    void addTextureFile(QSharedPointer<TextureFile> &texture) { m_texture_files[texture->path()] = texture; }
+    void AddTextureFile(const QString &texture_path) { texture_files_[texture_path] = texture_path; }
 
-    QSharedPointer<TextureFile> getTextureFile(const QString &texturePath) { return m_texture_files[texturePath]; }
+    QString GetTextureFile(const QString &texture_path) { return texture_files_[texture_path]; }
 
-    const QSharedPointer<VertexBuffer> getVertexBuffer() const { return m_vertexBuffer; }
+    void AddMaterial(const MaterialPtr &material) { materials_[material->GetName()] = material; }
 
-    const QSharedPointer<Node> rootNode() const { return m_rootNode; }
+    kMaterialPtr GetMaterial(const QString &material_name) { return materials_[material_name]; }
 
-    void setRootNode(QSharedPointer<Node> &rootNode) { m_rootNode = rootNode; }
-
-    int getIndicesSize() { return m_vertexBuffer->getIndicesSize(); }
-
-    QSharedPointer<const VertexBuffer> getVertexBufferConst() { return m_vertexBuffer; }
+    kVertexBufferPtr GetVertexBuffer() const { return vertex_buffer_; }
 
 private:
-    QMap<QString, QSharedPointer<Material>> m_materials;  // material_name -> material_obj
-    QMap<QString, QSharedPointer<TextureFile>> m_texture_files;    // texture_file_path -> texture_file_obj
-    QSharedPointer<VertexBuffer> m_vertexBuffer;
-    QSharedPointer<Node> m_rootNode;
+    NodePtr model_ = nullptr;
 
-    QSharedPointer<VertexBuffer> getVertexBuffer() { return m_vertexBuffer; }
+    QMap<QString, QString> texture_files_;
+
+    QMap<QString, MaterialPtr> materials_;
+
+    VertexBufferPtr vertex_buffer_ = nullptr;
+
+    VertexBufferPtr GetVertexBuffer() { return vertex_buffer_; }
 };
 
-#endif //QSPACE_SCENE_H
+#endif //QSPACE_MODEL_H

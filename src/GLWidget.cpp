@@ -5,7 +5,7 @@
 
 using namespace std;
 
-GLWidget::GLWidget() : m_shaderProgram(nullptr), m_vertexBuffer(QOpenGLBuffer::VertexBuffer), m_indexBuffer(QOpenGLBuffer::IndexBuffer) {
+GLWidget::GLWidget() : gl_shader_program_(nullptr), gl_vertex_buffer_(QOpenGLBuffer::VertexBuffer), gl_index_buffer_(QOpenGLBuffer::IndexBuffer) {
     QSurfaceFormat format;
     format.setRenderableType(QSurfaceFormat::OpenGL);
     format.setProfile(QSurfaceFormat::CoreProfile);
@@ -14,48 +14,51 @@ GLWidget::GLWidget() : m_shaderProgram(nullptr), m_vertexBuffer(QOpenGLBuffer::V
     format.setDepthBufferSize(24);
     format.setStencilBufferSize(8);
     setFormat(format);
-    m_transform.translate(0.0f, 0.0f, 0.0f);
+
+    transform_ = NodePtr(new Node("transform"));
+    camera_ = CameraPtr(new Camera("default camera"));
 }
 
-void GLWidget::createShaders() {
-    m_shaderProgram = new QOpenGLShaderProgram();
-    m_shaderProgram->addShaderFromSourceFile(QOpenGLShader::Vertex, "shaders/simple.vert");
-    m_shaderProgram->addShaderFromSourceFile(QOpenGLShader::Fragment, "shaders/simple.frag");
-    m_shaderProgram->link();
-    m_shaderProgram->bind();
+void GLWidget::CreateShaders() {
+    gl_shader_program_ = new QOpenGLShaderProgram();
+    gl_shader_program_->addShaderFromSourceFile(QOpenGLShader::Vertex, "shaders/simple.vert");
+    gl_shader_program_->addShaderFromSourceFile(QOpenGLShader::Fragment, "shaders/simple.frag");
+    gl_shader_program_->link();
+    gl_shader_program_->bind();
 };
 
-void GLWidget::createBuffers() {
-    m_vertexArrayObject.create();
-    m_vertexArrayObject.bind();
+void GLWidget::CreateBuffers() {
+    gl_vertex_array_object_.create();
+    gl_vertex_array_object_.bind();
 
-    QSharedPointer<const VertexBuffer> vertexBuffer = m_scene->getVertexBufferConst();
+    kScenePtr kScene = scene_;
+    kVertexBufferPtr vertex_buffer = kScene->GetVertexBuffer();
 
-    m_vertexBuffer.create();
-    m_vertexBuffer.setUsagePattern(QOpenGLBuffer::StaticDraw);
-    m_vertexBuffer.bind();
-    m_vertexBuffer.allocate(vertexBuffer->m_positions.constData(), vertexBuffer->m_positions.size() * sizeof(double));
-    m_shaderProgram->enableAttributeArray(0);
-    m_shaderProgram->setAttributeBuffer(0, GL_DOUBLE, 0, 3);
+    gl_vertex_buffer_.create();
+    gl_vertex_buffer_.setUsagePattern(QOpenGLBuffer::StaticDraw);
+    gl_vertex_buffer_.bind();
+    gl_vertex_buffer_.allocate(vertex_buffer->GetPositions().constData(), vertex_buffer->GetPositions().size() * sizeof(double));
+    gl_shader_program_->enableAttributeArray(0);
+    gl_shader_program_->setAttributeBuffer(0, GL_DOUBLE, 0, 3);
 
-    m_indexBuffer.create();
-    m_indexBuffer.setUsagePattern(QOpenGLBuffer::StaticDraw);
-    m_indexBuffer.bind();
-    m_indexBuffer.allocate(vertexBuffer->m_indices.constData(), vertexBuffer->m_indices.size() * sizeof(int));
+    gl_index_buffer_.create();
+    gl_index_buffer_.setUsagePattern(QOpenGLBuffer::StaticDraw);
+    gl_index_buffer_.bind();
+    gl_index_buffer_.allocate(vertex_buffer->GetIndices().constData(), vertex_buffer->GetIndices().size() * sizeof(unsigned int));
 }
 
-void GLWidget::loadModelFile(QString filePath) {
+void GLWidget::LoadModelFile(QString filePath) {
     filePath = filePath.length() == 0 ? "test_files/cube.fbx" : filePath;
 
-    if (!m_loader->checkFileFormatIsSupported(filePath)) {
+    if (!loader_->CheckFormatIsSupported(filePath)) {
         qDebug() << "Unsupported file format: " << filePath << "\n";
         return;
     }
 
-    m_scene = QSharedPointer<Scene>(new Scene);
-    m_loader = QSharedPointer<ModelLoader>(new ModelLoader);
-    if (!m_loader->load(filePath, m_scene)) {
-        qDebug() << "Failed to load file: " << filePath << "\n";
+    scene_ = ScenePtr(new Scene);
+    loader_ = FbxLoaderPtr(new FbxLoader);
+    if (!loader_->Load(filePath, scene_)) {
+        qDebug() << "Failed to Load file: " << filePath << "\n";
         exit(1);
     }
 }
@@ -63,48 +66,51 @@ void GLWidget::loadModelFile(QString filePath) {
 void GLWidget::initializeGL() {
     initializeOpenGLFunctions();
     connect(this, SIGNAL(frameSwapped()), this, SLOT(update()));
-    printContextInformation();
+    PrintContextInformation();
 
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
     glClearColor(0.7f, 0.7f, 0.7f, 1.0f);
 
-    loadModelFile();
-    createShaders();
-    createBuffers();
+    LoadModelFile();
+    CreateShaders();
+    CreateBuffers();
 }
 
 void GLWidget::resizeGL(int w, int h) {
-    m_projection.setToIdentity();
-    m_projection.perspective(45.0f, w / float(h), 0.1f, 100.0f);
+    projection_.setToIdentity();
+    projection_.perspective(45.0f, w / float(h), 0.01f, 100.0f);
 }
 
-void GLWidget::drawNode(QSharedPointer<Node> node, QMatrix4x4 objectMatrix) {
-    objectMatrix *= node->getTransformation();
-    m_shaderProgram->setUniformValue("modelToWorld", objectMatrix);
+void GLWidget::DrawNode(kNodePtr node, QMatrix4x4 objectMatrix) {
+    objectMatrix *= node->GetTransformation();
+    gl_shader_program_->setUniformValue("modelToWorld", objectMatrix);
 
-    for (auto &mesh:node->meshes()) {
-        glDrawElements(GL_TRIANGLES, mesh->indexCount(), GL_UNSIGNED_INT, (void *) (mesh->indexOffset() * sizeof(unsigned int)));
+    if (node->GetType() == NodeType::kMesh) {
+        kMeshPtr mesh = qSharedPointerDynamicCast<const Mesh>(node);
+        for (auto geometry: mesh->GetGeometries()) {
+            glDrawElements(GL_TRIANGLES, geometry->GetIndicesSize(), GL_UNSIGNED_INT, (void *) (geometry->GetIndexOffset() * sizeof(unsigned int)));
+        }
     }
 
-    for (auto &childNode:node->nodes()) drawNode(childNode, objectMatrix);
+    for (auto &childNode:node->GetNodes()) DrawNode(childNode, objectMatrix);
 }
 
 void GLWidget::paintGL() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    m_shaderProgram->setUniformValue("modelToWorld", m_transform.toMatrix());
-    m_shaderProgram->setUniformValue("worldToCamera", m_camera.toMatrix());
-    m_shaderProgram->setUniformValue("cameraToView", m_projection);
-    drawNode(m_scene->rootNode(), m_transform.toMatrix());
+    gl_shader_program_->setUniformValue("modelMatrix", transform_->GetTransformation());
+    gl_shader_program_->setUniformValue("viewMatrix", camera_->GetTransformation());
+    gl_shader_program_->setUniformValue("projectionMatrix", projection_);
+    DrawNode(scene_->GetModel(), QMatrix4x4());
 }
 
-void GLWidget::teardownGL() {
-    m_vertexArrayObject.destroy();
-    m_vertexBuffer.destroy();
-    delete m_shaderProgram;
+void GLWidget::TeardownGL() {
+    gl_vertex_array_object_.destroy();
+    gl_vertex_buffer_.destroy();
+    delete gl_shader_program_;
 }
 
-void GLWidget::printContextInformation() {
+void GLWidget::PrintContextInformation() {
     QString glType;
     QString glVersion;
 
@@ -115,8 +121,8 @@ void GLWidget::printContextInformation() {
 }
 
 void GLWidget::update() {
-    Input::update();
-    if (Input::buttonPressed(Qt::LeftButton)) { m_camera.orbitAround(m_scene->rootNode()); }
+    Input::Update();
+    if (Input::ButtonPressed(Qt::LeftButton)) { camera_->OrbitAround(scene_->GetModel()); }
     QOpenGLWidget::update();
 }
 
@@ -129,9 +135,9 @@ void GLWidget::keyReleaseEvent(QKeyEvent *event) {
 }
 
 void GLWidget::mousePressEvent(QMouseEvent *event) {
-    Input::registerMousePress(event->button());
+    Input::RegisterMousePress(event->button());
 }
 
 void GLWidget::mouseReleaseEvent(QMouseEvent *event) {
-    Input::registerMouseRelease(event->button());
+    Input::RegisterMouseRelease(event->button());
 }

@@ -7,67 +7,75 @@
 #include <QVector3D>
 #include <QVector4D>
 #include <QSharedPointer>
-#include "TextureFile.h"
-#include "TextureData.h"
+#include "Texture.h"
+
+using namespace std;
+
+class Material;
+
+typedef QSharedPointer<Material> MaterialPtr;
+
+typedef QSharedPointer<const Material> kMaterialPtr;
 
 class Material {
 public:
     enum Shading {
-        Phone = 1,
-        Lambert = 2
+        kPhone = 0,
+        kLambert,
+        kCount
     };
 
-    Material(const QString &material_name) : m_name(material_name) {}
+    explicit Material(QString name) : name_(move(name)), shading_(Shading::kPhone) {}
 
-    const QString &name() const { return m_name; }
+    const QString &GetName() const { return name_; }
 
-    const Shading &shading() const { return m_shading; }
+    const Shading GetShading() const { return shading_; }
 
-    void setShading(const Shading shading) { m_shading = shading; }
+    void SetShading(const Shading shading) { shading_ = shading; }
 
-    const QVector<double> &ambient() const { return m_ambient; }
+    const QVector<double> &GetAmbient() const { return ambient_; }
 
-    void setAmbient(const QVector<double> &ambient) { m_ambient = ambient; }
+    void SetAmbient(const QVector<double> &ambient) { ambient_ = ambient; }
 
-    const QVector<double> &diffuse() const { return m_diffuse; }
+    const QVector<double> &SetDiffuse() const { return diffuse_; }
 
-    void setDiffuse(const QVector<double> &diffuse) { m_diffuse = diffuse; }
+    void SetDiffuse(const QVector<double> &diffuse) { diffuse_ = diffuse; }
 
-    const QVector<double> &emissive() const { return m_emissive; }
+    const QVector<double> &GetEmissive() const { return emissive_; }
 
-    void setEmissive(const QVector<double> &emissive) { m_emissive = emissive; }
+    void SetEmissive(const QVector<double> &emissive) { emissive_ = emissive; }
 
-    const QVector<double> &specular() const { return m_specular; }
+    const QVector<double> &GetSpecular() const { return specular_; }
 
-    void setSpecular(const QVector<double> &specular) { m_specular = specular; }
+    void SetSpecular(const QVector<double> &specular) { specular_ = specular; }
 
-    float opacity() const { return m_opacity; }
+    float GetOpacity() const { return opacity_; }
 
-    void setOpacity(const float &opacity) { m_opacity = opacity; }
+    void SetOpacity(float opacity) { opacity_ = opacity; }
 
-    float shininess() const { return m_shininess; }
+    float GetShininess() const { return shininess_; }
 
-    void setShininess(float shininess) { m_shininess = shininess; }
+    void SetShininess(float shininess) { shininess_ = shininess; }
 
-    float reflectivity() { return m_reflectivity; }
+    float GetReflectivity() { return reflectivity_; }
 
-    void setReflectivity(float reflectivity) { m_reflectivity = reflectivity; }
+    void SetReflectivity(float reflectivity) { reflectivity_ = reflectivity; }
 
-    void addTexture(QSharedPointer<TextureData> textureData) { textures[textureData->channel()] = textureData; }
+    void AddTexture(QSharedPointer<Texture> texture_data) { textures[texture_data->GetChannel()] = texture_data; }
 
-    QSharedPointer<TextureData> getTexture(const QString &channel) { return textures[channel]; }
+    QSharedPointer<Texture> GetTexture(const QString &channel) { return textures[channel]; }
 
 private:
-    QString m_name;
-    Shading m_shading;
-    QVector<double> m_ambient;
-    QVector<double> m_diffuse;
-    QVector<double> m_specular;
-    QVector<double> m_emissive;
-    float m_opacity = 0.0f;
-    float m_shininess = 0.0f;
-    float m_reflectivity = 0.0f;
-    QMap<QString, QSharedPointer<TextureData>> textures;
+    QString name_;
+    Shading shading_;
+    QVector<double> ambient_;
+    QVector<double> diffuse_;
+    QVector<double> specular_;
+    QVector<double> emissive_;
+    float opacity_ = 0.0f;
+    float shininess_ = 0.0f;
+    float reflectivity_ = 0.0f;
+    QMap<QString, QSharedPointer<Texture>> textures;
 };
 
 #endif //QSPACE_MATERIAL_H
