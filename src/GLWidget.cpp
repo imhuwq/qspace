@@ -48,7 +48,7 @@ void GLWidget::CreateBuffers() {
 }
 
 void GLWidget::LoadModelFile(QString filePath) {
-    filePath = filePath.length() == 0 ? "test_files/cube.fbx" : filePath;
+    filePath = filePath.length() == 0 ? "models/cube.fbx" : filePath;
 
     if (!loader_->CheckFormatIsSupported(filePath)) {
         qDebug() << "Unsupported file format: " << filePath << "\n";
